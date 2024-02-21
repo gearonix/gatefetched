@@ -5,14 +5,15 @@ import type {
   SourcedField,
   Validator
 } from '@farfetched/core'
+import { normalizeSourced } from '@farfetched/core'
 import type { Event, Store } from 'effector'
-import { Socket } from 'socket.io-client'
+import type { Socket } from 'socket.io-client'
 
-type AnyWebsocketEvents = string
+type WebsocketEvents = string
 
 type AnyObject = Record<string, unknown>
 
-type EventsConfig<Event extends AnyWebsocketEvents> =
+type EventsConfig<Event extends WebsocketEvents> =
   | Record<Event, string>
   | Event[]
   | readonly Event[]
@@ -26,12 +27,12 @@ interface LogMessage {
   error?: unknown
 }
 
-interface CreateGatewayParams<
+interface BaseCreateGatewayParams<
   Instance extends WebsocketInstance,
   LogSource = void,
   DataSource = void
 > {
-  from?: Instance
+  from: SourcedInstance<Instance>
   logs?: DynamicallySourcedField<LogMessage, unknown, LogSource> | boolean
   response?: {
     mapData?: DynamicallySourcedField<any, any, DataSource>
@@ -69,7 +70,7 @@ interface Dispatcher<Params> {
 }
 
 interface BaseListenerConfig<
-  Events extends AnyWebsocketEvents,
+  Events extends WebsocketEvents,
   Data,
   ValidationSource = void,
   TransformedData = void,
@@ -90,7 +91,7 @@ interface BaseListenerConfig<
 }
 
 interface BaseDispatcherConfig<
-  Events extends AnyWebsocketEvents,
+  Events extends WebsocketEvents,
   Params,
   BodySource = void
 > {
@@ -101,7 +102,7 @@ interface BaseDispatcherConfig<
   }
 }
 
-interface CreateListener<Events extends AnyWebsocketEvents> {
+interface CreateListener<Events extends WebsocketEvents> {
   <Data, ValidationSource = void>(
     config: BaseListenerConfig<Events, Data, ValidationSource>
   ): Listener<Data>
@@ -125,7 +126,7 @@ interface CreateListener<Events extends AnyWebsocketEvents> {
   <Data, Event extends Events>(event: Event): Listener<Data>
 }
 
-interface CreateDispatcher<Events extends AnyWebsocketEvents> {
+interface CreateDispatcher<Events extends WebsocketEvents> {
   <Params, BodySource = void>(
     config: BaseDispatcherConfig<Events, Params, BodySource>
   ): Dispatcher<Params>
@@ -135,28 +136,87 @@ interface CreateDispatcher<Events extends AnyWebsocketEvents> {
 
 interface WebsocketGateway<
   Instance extends WebsocketInstance,
-  Events extends AnyWebsocketEvents = AnyWebsocketEvents
+  Events extends WebsocketEvents = WebsocketEvents
 > {
   $instance: Store<Instance>
   listen: CreateListener<Events>
   dispatcher: CreateDispatcher<Events>
 }
 
+type SourcedInstance<Instance> = SourcedField<any, Instance, any>
+
+type CreateGatewayParamsWithEvents<
+  Instance extends WebsocketInstance,
+  Events extends WebsocketEvents
+> = BaseCreateGatewayParams<Instance> & {
+  events: EventsConfig<Events>
+}
+
+export type CreateGatewayParams<
+  Instance extends WebsocketInstance,
+  Events extends WebsocketEvents = WebsocketEvents
+> =
+  | BaseCreateGatewayParams<Instance>
+  | CreateGatewayParamsWithEvents<Instance, Events>
+  | SourcedInstance<Instance>
+
+export function isBaseGatewayConfig(params: unknown) {
+  return typeof params === 'object' && params !== null && 'from' in params
+}
+
+interface CreateGatewayParamsNormalized<Instance> {
+  instance: Store<Instance>
+  options: Omit<BaseCreateGatewayParams<any>, 'from'>
+}
+
 export function createGateway<Instance extends WebsocketInstance>(
-  options: CreateGatewayParams<Instance>
+  options: BaseCreateGatewayParams<Instance>
 ): WebsocketGateway<Instance>
 
 export function createGateway<
   Instance extends WebsocketInstance,
-  const Events extends AnyWebsocketEvents
+  const Events extends WebsocketEvents
 >(
-  options: CreateGatewayParams<Instance> & {
+  options: BaseCreateGatewayParams<Instance> & {
     events: EventsConfig<Events>
   }
 ): WebsocketGateway<Instance, Events>
 
 export function createGateway<Instance extends WebsocketInstance>(
-  instance: Instance
+  instance: SourcedInstance<Instance>
 ): WebsocketGateway<Instance>
 
-export function createGateway(instance: any): any {}
+export function createGateway<
+  Instance extends WebsocketInstance,
+  Events extends WebsocketEvents
+>(params: CreateGatewayParams<Instance, Events>): any {
+  const { instance, options } = normalizeCreateGatewayParams(params)
+
+}
+
+export function normalizeCreateGatewayParams<
+  Instance extends WebsocketInstance,
+  Events extends WebsocketEvents
+>(params: CreateGatewayParams<Instance, Events>) {
+  const resultParams = {} as CreateGatewayParamsNormalized<Instance>
+
+  if (isBaseGatewayConfig(params)) {
+    const { from, ...configParams } =
+      params as BaseCreateGatewayParams<Instance>
+
+    Object.assign(resultParams, {
+      from: normalizeSourced({ field: from }),
+      options: configParams
+    })
+
+    return resultParams
+  }
+  const instance = params as SourcedInstance<Instance>
+
+  Object.assign(resultParams, {
+    from: normalizeSourced({ field: instance }),
+    options: {}
+  })
+
+  return resultParams
+}
