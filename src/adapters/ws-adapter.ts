@@ -81,7 +81,6 @@ export class WebsocketAdapter extends AbstractWsAdapter<
     trigger: (result: SubscribeResponse<unknown>) => void,
     options: AdapterSubscribeOptions
   ) {
-    // using the arrow functions due to the loss of 'this'
     const handleIncomingMessage = (evt: MessageEvent) => {
       if (options.once) {
         this.client.removeEventListener('message', handleIncomingMessage)
