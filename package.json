@@ -1,16 +1,16 @@
 {
-  "name": "farfetched-websockets",
+  "name": "farsocket",
   "type": "module",
   "version": "0.0.0",
   "packageManager": "pnpm@8.15.3",
   "author": "Uzhanin Egor <egor.uzhanin@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/gearnoix/farfetched-websockets#readme",
+  "homepage": "https://github.com/gearonix/farsocket#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gearonix/farfetched-websockets.git"
+    "url": "git+https://github.com/gearonix/farsocket.git"
   },
-  "bugs": "https://github.com/gearonix/farfetched-websockets/issues",
+  "bugs": "https://github.com/gearonix/farsocket/issues",
   "keywords": [],
   "sideEffects": false,
   "exports": {
@@ -46,8 +46,8 @@
     "prepare": "simple-git-hooks"
   },
   "peerDependencies": {
-    "effector": "^23.0.0",
     "@farfetched/core": "^0.11.4",
+    "effector": "^23.0.0",
     "socket.io-client": "^4.5.4"
   },
   "peerDependenciesMeta": {
@@ -65,6 +65,7 @@
     "eslint-kit": "^10.15.0",
     "esno": "^4.0.0",
     "lint-staged": "^15.2.2",
+    "patronum": "^2.2.0",
     "pnpm": "^8.15.3",
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",

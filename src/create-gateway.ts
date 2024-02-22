@@ -6,7 +6,8 @@ import type {
 import { normalizeSourced } from '@farfetched/core'
 import type { Event, Store } from 'effector'
 import { createAdapter } from './adapters'
-import type { CreateListener } from './listen'
+import { AbstractWsAdapter } from './adapters/abstract-adapter'
+import type { CreateListener } from './listener'
 import type {
   AnyObj,
   OperationStatus,
@@ -22,13 +23,14 @@ interface LogMessage {
   error?: unknown
 }
 
-interface BaseCreateGatewayParams<
-  Instance extends WebsocketInstance,
+export interface BaseCreateGatewayParams<
+  Instance extends WebsocketInstance = WebsocketInstance,
   LogSource = void,
   DataSource = void
 > {
   from: Instance
   logs?: DynamicallySourcedField<LogMessage, unknown, LogSource> | boolean
+  events?: WebsocketEventsConfig
   response?: {
     mapData?: DynamicallySourcedField<any, any, DataSource>
   }
@@ -74,7 +76,7 @@ interface WebsocketGateway<
   Events extends WebsocketEvents = WebsocketEvents
 > {
   $instance: Store<Instance>
-  listen: CreateListener<Events>
+  listener: CreateListener<Events>
   dispatcher: CreateDispatcher<Events>
 }
 
@@ -92,15 +94,6 @@ export type CreateGatewayParams<
   | BaseCreateGatewayParams<Instance>
   | CreateGatewayParamsWithEvents<Instance, Events>
   | Instance
-
-export function isBaseGatewayConfig(params: unknown) {
-  return isObject(params) && 'from' in params
-}
-
-interface CreateGatewayParamsNormalized<Instance> {
-  instance: Instance
-  options: Omit<BaseCreateGatewayParams<any>, 'from'>
-}
 
 export function createGateway<Instance extends WebsocketInstance>(
   options: BaseCreateGatewayParams<Instance>
@@ -133,10 +126,24 @@ export function createGateway<
   } as any
 }
 
+export type GatewayParamsWithAdapter = Omit<BaseCreateGatewayParams, 'from'> & {
+  adapter: AbstractWsAdapter
+}
+
+interface CreateGatewayParamsNormalized<Instance> {
+  instance: Instance
+  options: Omit<BaseCreateGatewayParams, 'from'>
+}
+
 export function normalizeCreateGatewayParams<
   Instance extends WebsocketInstance,
   Events extends WebsocketEvents
->(params: CreateGatewayParams<Instance, Events>) {
+>(
+  params: CreateGatewayParams<Instance, Events>
+): CreateGatewayParamsNormalized<Instance> {
+  const isBaseGatewayConfig = (params: unknown) =>
+    isObject(params) && 'from' in params
+
   const resultParams = {} as CreateGatewayParamsNormalized<Instance>
 
   if (isBaseGatewayConfig(params)) {

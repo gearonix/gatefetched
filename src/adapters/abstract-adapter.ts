@@ -1,4 +1,4 @@
-import type { AnyFunc, AnyObj, WebsocketInstance } from '../shared'
+import type { AnyFn, AnyObj, WebsocketInstance } from '../shared'
 
 export interface AdapterPublishOptions {
   withAck?: boolean
@@ -25,9 +25,9 @@ export abstract class AbstractWsAdapter<
     this.client = client
   }
 
-  public abstract bindConnect<Fn extends AnyFunc>(cb: Fn): void
+  public abstract bindConnect<Fn extends AnyFn>(cb: Fn): void
 
-  public abstract bindDisconnect<Fn extends AnyFunc>(cb: Fn): void
+  public abstract bindDisconnect<Fn extends AnyFn>(cb: Fn): void
 
   public abstract createConnection(url: string, options?: Options): Client
 
@@ -39,8 +39,8 @@ export abstract class AbstractWsAdapter<
 
   public abstract subscribe(
     event: string,
-    fn: AnyFunc,
-    options: AdapterSubscribeOptions
+    fn: AnyFn,
+    options?: AdapterSubscribeOptions
   ): void
 
   public abstract publish(

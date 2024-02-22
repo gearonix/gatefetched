@@ -5,7 +5,7 @@ import type {
 } from 'socket.io-client'
 import { io as createIoClient } from 'socket.io-client'
 import { CONNECTION_EVENT, DISCONNECT_EVENT } from '../consts'
-import type { AnyFunc } from '../shared'
+import type { AnyFn } from '../shared'
 import { isAnyWebSocketEvent } from '../shared'
 import type {
   AdapterPublishOptions,
@@ -18,11 +18,11 @@ import { AdapterMeta } from './matchers'
 export type IoOptions = ManagerOptions & SocketOptions
 
 export class IoAdapter extends AbstractWsAdapter<IoClient, IoOptions> {
-  public bindConnect<Fn extends AnyFunc>(cb: Fn) {
+  public bindConnect<Fn extends AnyFn>(cb: Fn) {
     this.client.on(CONNECTION_EVENT, cb)
   }
 
-  public bindDisconnect<Fn extends AnyFunc>(cb: Fn) {
+  public bindDisconnect<Fn extends AnyFn>(cb: Fn) {
     this.client.on(DISCONNECT_EVENT, cb)
   }
 
