@@ -6,7 +6,6 @@ import type { Nil } from '../shared'
 import { isAnyWebSocketEvent, isObject, safeParseJson } from '../shared'
 import type {
   AdapterSubscribeOptions,
-  AdapterType,
   SubscribeResponse
 } from './abstract-adapter'
 import { AbstractWsAdapter } from './abstract-adapter'

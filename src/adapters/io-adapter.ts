@@ -35,6 +35,8 @@ export class IoAdapter extends AbstractWsAdapter<IoClient, IoOptions> {
     trigger: (result: SubscribeResponse<unknown>) => void,
     { dirty, ...options }: AdapterSubscribeOptions
   ) {
+    const triggerEvent = (data: unknown) => trigger({ data })
+
     if (!dirty) this.client.off(event)
 
     if (isAnyWebSocketEvent(event)) {
@@ -44,9 +46,12 @@ export class IoAdapter extends AbstractWsAdapter<IoClient, IoOptions> {
       return
     }
 
-    const method = options.once ? 'once' : 'on'
+    if (options.once) {
+      this.client.once(event, triggerEvent)
+      return
+    }
 
-    this.client[method](event, (data: unknown) => trigger({ data }))
+    this.client.on(event, triggerEvent)
   }
 
   public async publish<Params extends unknown>(

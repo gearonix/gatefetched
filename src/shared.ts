@@ -1,6 +1,7 @@
 import { Socket as SocketIoInstance } from 'socket.io-client'
 import { ANY_WEBSOCKET_EVENT } from './consts'
 
+// TODO: split files
 type AnyKey = keyof any
 export type Nil = null | undefined
 
@@ -11,9 +12,12 @@ export type WebsocketEventsConfig<Event extends WebsocketEvents> =
   | Record<Event, string>
   | Event[]
   | readonly Event[]
+
 export type WebsocketEvents = string
 
 export type WebsocketInstance = SocketIoInstance | WebSocket
+
+export type OperationStatus = 'waiting' | 'done'
 
 export const isObject = (target: unknown): target is AnyObj =>
   typeof target === 'object' && target !== null
