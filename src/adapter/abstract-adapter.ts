@@ -1,10 +1,4 @@
-import type { AnyFunc, AnyObj, Nil } from '@lib'
-import { isFunction } from '@lib'
-
-export interface BaseWsInstance {
-  on: (event: string, callback: AnyFunc) => void
-  close: AnyFunc
-}
+import type { AnyFunc, AnyObj, WebsocketInstance } from '@lib'
 
 export type AdapterType = 'socket.io' | 'websocket'
 
@@ -27,13 +21,13 @@ export interface SubscribeResult<Result> {
   result: Result
 }
 
-export interface WebsocketAdapter<
-  Client extends BaseWsInstance,
-  Options = any
+export interface BaseWebsocketAdapter<
+  Client extends WebsocketInstance = WebsocketInstance,
+  Options = unknown
 > {
   createConnection(url: string, options: Options): void
-  bindConnect(client: Client, cb: AnyFunc): void
-  bindDisconnect(client: Client, cb: AnyFunc): void
+  bindConnect(cb: AnyFunc): void
+  bindDisconnect(cb: AnyFunc): void
   close(client: Client | null): void
   subscribe(event: string, fn: AnyFunc, options: AdapterSubscribeOptions): void
   publish(event: string, params: AnyObj, options: AdapterPublishOptions): void
@@ -41,9 +35,9 @@ export interface WebsocketAdapter<
 }
 
 export abstract class AbstractWsAdapter<
-  Client extends BaseWsInstance = BaseWsInstance,
+  Client extends WebsocketInstance = WebsocketInstance,
   Options = unknown
-> implements WebsocketAdapter<Client, Options>
+> implements BaseWebsocketAdapter<Client, Options>
 {
   protected readonly client: Client
 
@@ -51,20 +45,14 @@ export abstract class AbstractWsAdapter<
     this.client = client
   }
 
-  public bindConnect<Fn extends AnyFunc>(client: Client, cb: Fn) {
-    client.on(CONNECTION_EVENT, cb)
-  }
+  public abstract bindConnect<Fn extends AnyFunc>(cb: Fn): void
 
-  public bindDisconnect<Fn extends AnyFunc>(client: Client, cb: Fn) {
-    client.on(DISCONNECT_EVENT, cb)
-  }
+  public abstract bindDisconnect<Fn extends AnyFunc>(cb: Fn): void
 
-  public abstract createConnection(url: string, options: Options): Client
+  public abstract createConnection(url: string, options?: Options): Client
 
-  public close(client: Client | Nil) {
-    const isCallable = client && isFunction(client.close)
-
-    if (isCallable) client.close()
+  public close() {
+    this.client.close()
   }
 
   public abstract get type(): AdapterType

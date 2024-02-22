@@ -1,4 +1,4 @@
-import type { AnyObj } from '@lib'
+import type { AnyFunc, AnyObj } from '@lib'
 import { ANY_WEBSOCKET_EVENT } from '@lib'
 import type {
   ManagerOptions,
@@ -12,11 +12,23 @@ import type {
   AdapterType,
   SubscribeResult
 } from './abstract-adapter'
-import { AbstractWsAdapter } from './abstract-adapter'
+import {
+  AbstractWsAdapter,
+  CONNECTION_EVENT,
+  DISCONNECT_EVENT
+} from './abstract-adapter'
 
 export type IoOptions = ManagerOptions & SocketOptions
 
 export class IoAdapter extends AbstractWsAdapter<IoClient, IoOptions> {
+  public bindConnect<Fn extends AnyFunc>(cb: Fn) {
+    this.client.on(CONNECTION_EVENT, cb)
+  }
+
+  public bindDisconnect<Fn extends AnyFunc>(cb: Fn) {
+    this.client.on(DISCONNECT_EVENT, cb)
+  }
+
   public createConnection(url: string, options: IoOptions) {
     return createIoClient(url, options)
   }

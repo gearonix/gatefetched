@@ -8,7 +8,7 @@ import type {
 import { normalizeSourced } from '@farfetched/core'
 import type { Event, Store } from 'effector'
 import type { Socket as SocketIoInstance } from 'socket.io-client'
-import { createAdapter } from './adapter/detector.ts'
+import { createAdapter } from './adapter/create-adapter'
 
 type WebsocketEvents = string
 
@@ -26,7 +26,7 @@ type EventsConfig<Event extends WebsocketEvents> =
   | readonly Event[]
 
 // TODO: fix
-export type WebsocketInstance = SocketIoInstance
+export type WebsocketInstance = SocketIoInstance | WebSocket
 
 interface LogMessage {
   type: 'request' | 'response'
