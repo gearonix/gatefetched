@@ -21,7 +21,7 @@
     "noFallthroughCasesInSwitch": true,
     "suppressExcessPropertyErrors": false,
     "suppressImplicitAnyIndexErrors": false,
-    "allowImportingTsExtensions": true,
+    "allowImportingTsExtensions": false,
     "allowUnreachableCode": false,
     "verbatimModuleSyntax": true,
     "importHelpers": false,

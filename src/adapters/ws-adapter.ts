@@ -1,13 +1,16 @@
-import type { Nil } from '@lib'
-import { ANY_WEBSOCKET_EVENT, isObject } from '@lib'
+import {
+  invalidOperationEventResponseError,
+  websocketConnectionFailureError
+} from '../errors/create-error'
+import type { Nil } from '../shared'
+import { isAnyWebSocketEvent, isObject, safeParseJson } from '../shared'
 import type {
   AdapterSubscribeOptions,
   AdapterType,
-  SubscribeResult
+  SubscribeResponse
 } from './abstract-adapter'
 import { AbstractWsAdapter } from './abstract-adapter'
-
-type WebsocketProtocols = string | string[]
+import { AdapterMeta } from './matchers'
 
 export const ReadyState = {
   CONNECTING_STATE: 0,
@@ -15,6 +18,8 @@ export const ReadyState = {
   CLOSING_STATE: 2,
   CLOSED_STATE: 3
 } as const
+
+type WebsocketProtocols = string | string[]
 
 export interface WsOperationWithEvent<Result> {
   event: string
@@ -24,13 +29,12 @@ export interface WsOperationWithEvent<Result> {
 export function assertWsOperationWithEvent(
   response: unknown
 ): asserts response is WsOperationWithEvent<unknown> {
-  const isWsOperation =
+  const isValidOperation =
     isObject(response) && 'event' in response && 'data' in response
 
-  if (isWsOperation) return
+  if (isValidOperation) return
 
-  // TODO: refactor
-  throw new Error('error')
+  throw invalidOperationEventResponseError()
 }
 
 export const createWsOperation = <Result>(
@@ -41,14 +45,6 @@ export const createWsOperation = <Result>(
   data
 })
 
-export function safeParseJson(json: string) {
-  try {
-    return JSON.parse(json) as unknown
-  } catch (error) {
-    return null
-  }
-}
-
 export class WebsocketAdapter extends AbstractWsAdapter<
   WebSocket,
   WebsocketProtocols
@@ -56,14 +52,16 @@ export class WebsocketAdapter extends AbstractWsAdapter<
   constructor(client: WebSocket) {
     super(client)
 
+    this.listenDefaultMessageHandlers()
+  }
+
+  private listenDefaultMessageHandlers() {
     this.client.addEventListener('error', (error: Event) => {
-      // TODO: refactor
-      throw new Error('error')
+      throw websocketConnectionFailureError(error)
     })
 
     this.client.addEventListener('close', (evt: Event) => {
-      // TODO: refactor
-      console.log('connected closed')
+      // TODO: extend
     })
   }
 
@@ -79,55 +77,48 @@ export class WebsocketAdapter extends AbstractWsAdapter<
     return new WebSocket(url, protocols)
   }
 
-  public get type(): AdapterType {
-    return 'websocket'
-  }
-
   public subscribe(
     event: string,
-    callback: (result: SubscribeResult<unknown>) => void,
+    trigger: (result: SubscribeResponse<unknown>) => void,
     options: AdapterSubscribeOptions
   ) {
-    function triggerSubscriber(result: unknown) {
-      callback({
-        eventType: event,
-        options,
-        result
-      } satisfies SubscribeResult<unknown>)
-    }
-
     // using the arrow functions due to the loss of 'this'
     const handleIncomingMessage = (evt: MessageEvent) => {
-      if (!evt.isTrusted || evt.defaultPrevented) {
-        return
+      if (options.once) {
+        this.client.removeEventListener('message', handleIncomingMessage)
       }
+
+      if (!evt.isTrusted || evt.defaultPrevented) return
 
       const parsedResult = safeParseJson(evt.data)
 
-      if (event !== ANY_WEBSOCKET_EVENT) {
-        assertWsOperationWithEvent(parsedResult)
-
-        if (parsedResult.event !== event) return
-
-        triggerSubscriber(parsedResult.data)
+      if (isAnyWebSocketEvent(event)) {
+        trigger({ data: parsedResult })
+        return
       }
 
-      triggerSubscriber(parsedResult)
+      assertWsOperationWithEvent(parsedResult)
 
-      if (options.once) {
-        this.client.removeEventListener('message', handleIncomingMessage)
+      if (parsedResult.event === event) {
+        trigger({ data: parsedResult.data })
       }
     }
 
     this.client.addEventListener('message', handleIncomingMessage)
   }
 
-  public async publish(event: string | Nil, params: unknown = {}) {
-    // TODO: add timeout
-    if (this.client.readyState !== ReadyState.OPEN_STATE) return
+  public async publish<Params extends unknown>(
+    event: string | Nil,
+    params?: Params
+  ) {
+    if (this.client.readyState === ReadyState.OPEN_STATE) {
+      const serializedParams = event ? createWsOperation(event, params) : params
 
-    const serializedParams = event ? createWsOperation(event, params) : params
+      this.client.send(JSON.stringify(serializedParams))
+    }
+  }
 
-    this.client.send(JSON.stringify(serializedParams))
+  public get kind() {
+    return AdapterMeta.BASE_WEBSOCKET
   }
 }

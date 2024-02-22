@@ -7,26 +7,14 @@ import type {
 } from '@farfetched/core'
 import { normalizeSourced } from '@farfetched/core'
 import type { Event, Store } from 'effector'
-import type { Socket as SocketIoInstance } from 'socket.io-client'
-import { createAdapter } from './adapter/create-adapter'
-
-type WebsocketEvents = string
-
-type AnyKey = keyof any
-export type Nil = null | undefined
-
-export const ANY_WEBSOCKET_EVENT = 'ANY_WEBSOCKET_EVENT' as const
-
-export type AnyObj = Record<AnyKey, unknown>
-export type AnyFunc = (...args: any[]) => unknown
-
-type EventsConfig<Event extends WebsocketEvents> =
-  | Record<Event, string>
-  | Event[]
-  | readonly Event[]
-
-// TODO: fix
-export type WebsocketInstance = SocketIoInstance | WebSocket
+import { createAdapter } from './adapters'
+import type {
+  AnyObj,
+  WebsocketEvents,
+  WebsocketEventsConfig,
+  WebsocketInstance
+} from './shared'
+import { isObject } from './shared'
 
 interface LogMessage {
   type: 'request' | 'response'
@@ -39,18 +27,18 @@ interface BaseCreateGatewayParams<
   LogSource = void,
   DataSource = void
 > {
-  from: SourcedInstance<Instance>
+  from: Instance
   logs?: DynamicallySourcedField<LogMessage, unknown, LogSource> | boolean
   response?: {
     mapData?: DynamicallySourcedField<any, any, DataSource>
   }
 }
 
-type ExecutionStatus = 'waiting' | 'done'
+type OperationStatus = 'waiting' | 'done'
 
 interface Listener<Data, InitialData = null> {
   $enabled: Store<boolean>
-  $status: Store<ExecutionStatus>
+  $status: Store<OperationStatus>
   $finished: Store<boolean>
   $data: Store<Data | InitialData>
 
@@ -63,7 +51,7 @@ interface Listener<Data, InitialData = null> {
 
 interface Dispatcher<Params> {
   $enabled: Store<boolean>
-  $status: Store<ExecutionStatus>
+  $status: Store<OperationStatus>
   $executed: Store<boolean>
 
   dispatch: Event<Params>
@@ -150,13 +138,11 @@ interface WebsocketGateway<
   dispatcher: CreateDispatcher<Events>
 }
 
-type SourcedInstance<Instance> = SourcedField<any, Instance, any>
-
 type CreateGatewayParamsWithEvents<
   Instance extends WebsocketInstance,
   Events extends WebsocketEvents
 > = BaseCreateGatewayParams<Instance> & {
-  events: EventsConfig<Events>
+  events: WebsocketEventsConfig<Events>
 }
 
 export type CreateGatewayParams<
@@ -165,23 +151,14 @@ export type CreateGatewayParams<
 > =
   | BaseCreateGatewayParams<Instance>
   | CreateGatewayParamsWithEvents<Instance, Events>
-  | SourcedInstance<Instance>
-
-export const isFunction = (
-  value: unknown
-): value is (...args: any[]) => unknown => typeof value === 'function'
-
-export const isNil = (target: unknown): target is Nil => target == null
-
-export const isObject = (target: unknown): target is AnyObj =>
-  typeof target === 'object' && target !== null
+  | Instance
 
 export function isBaseGatewayConfig(params: unknown) {
   return isObject(params) && 'from' in params
 }
 
 interface CreateGatewayParamsNormalized<Instance> {
-  instance: Store<Instance>
+  instance: Instance
   options: Omit<BaseCreateGatewayParams<any>, 'from'>
 }
 
@@ -194,12 +171,12 @@ export function createGateway<
   const Events extends WebsocketEvents
 >(
   options: BaseCreateGatewayParams<Instance> & {
-    events: EventsConfig<Events>
+    events: WebsocketEventsConfig<Events>
   }
 ): WebsocketGateway<Instance, Events>
 
 export function createGateway<Instance extends WebsocketInstance>(
-  instance: SourcedInstance<Instance>
+  instance: Instance
 ): WebsocketGateway<Instance>
 
 export function createGateway<
@@ -208,7 +185,7 @@ export function createGateway<
 >(params: CreateGatewayParams<Instance, Events>): any {
   const { instance, options } = normalizeCreateGatewayParams(params)
 
-  const $adapter = createAdapter({ $from: instance })
+  const adapter = createAdapter({ instance })
 }
 
 export function normalizeCreateGatewayParams<
@@ -228,7 +205,7 @@ export function normalizeCreateGatewayParams<
 
     return resultParams
   }
-  const instance = params as SourcedInstance<Instance>
+  const instance = params as Instance
 
   Object.assign(resultParams, {
     from: normalizeSourced({ field: instance }),
