@@ -7,11 +7,18 @@ import type {
 } from '@farfetched/core'
 import { normalizeSourced } from '@farfetched/core'
 import type { Event, Store } from 'effector'
-import type { Socket } from 'socket.io-client'
+import type { Socket as SocketIoInstance } from 'socket.io-client'
+import { createAdapter } from './adapter/detector.ts'
 
 type WebsocketEvents = string
 
-type AnyObject = Record<string, unknown>
+type AnyKey = keyof any
+export type Nil = null | undefined
+
+export const ANY_WEBSOCKET_EVENT = 'ANY_WEBSOCKET_EVENT' as const
+
+export type AnyObj = Record<AnyKey, unknown>
+export type AnyFunc = (...args: any[]) => unknown
 
 type EventsConfig<Event extends WebsocketEvents> =
   | Record<Event, string>
@@ -19,7 +26,7 @@ type EventsConfig<Event extends WebsocketEvents> =
   | readonly Event[]
 
 // TODO: fix
-type WebsocketInstance = Socket
+export type WebsocketInstance = SocketIoInstance
 
 interface LogMessage {
   type: 'request' | 'response'
@@ -76,7 +83,7 @@ interface BaseListenerConfig<
   TransformedData = void,
   DataSource = void
 > {
-  name: Events
+  name?: Events
   initialData?: Data
 
   response: {
@@ -98,7 +105,7 @@ interface BaseDispatcherConfig<
   name: Events
   params?: ParamsDeclaration<Params>
   request?: {
-    body?: SourcedField<Params, AnyObject, BodySource>
+    body?: SourcedField<Params, AnyObj, BodySource>
   }
 }
 
@@ -160,8 +167,17 @@ export type CreateGatewayParams<
   | CreateGatewayParamsWithEvents<Instance, Events>
   | SourcedInstance<Instance>
 
+export const isFunction = (
+  value: unknown
+): value is (...args: any[]) => unknown => typeof value === 'function'
+
+export const isNil = (target: unknown): target is Nil => target == null
+
+export const isObject = (target: unknown): target is AnyObj =>
+  typeof target === 'object' && target !== null
+
 export function isBaseGatewayConfig(params: unknown) {
-  return typeof params === 'object' && params !== null && 'from' in params
+  return isObject(params) && 'from' in params
 }
 
 interface CreateGatewayParamsNormalized<Instance> {
@@ -192,6 +208,7 @@ export function createGateway<
 >(params: CreateGatewayParams<Instance, Events>): any {
   const { instance, options } = normalizeCreateGatewayParams(params)
 
+  const $adapter = createAdapter({ $from: instance })
 }
 
 export function normalizeCreateGatewayParams<
