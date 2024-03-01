@@ -1,5 +1,5 @@
+import type { WebsocketInstance } from '@/shared/types'
 import { unsupportedInstanceError } from '../errors/create-error'
-import type { WebsocketInstance } from '../shared'
 import type { AbstractWsAdapter } from './abstract-adapter'
 import { adapterMatchers } from './matchers'
 

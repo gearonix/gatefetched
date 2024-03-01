@@ -1,6 +1,6 @@
 import { Socket as IoInstance } from 'socket.io-client'
-import type { WebsocketInstance } from '../shared'
-import { isObject } from '../shared'
+import type { WebsocketInstance } from '@/shared/types'
+import { isObject } from '@/shared/types'
 import { AbstractWsAdapter } from './abstract-adapter'
 import { IoAdapter } from './io-adapter'
 import { WebsocketAdapter } from './ws-adapter'

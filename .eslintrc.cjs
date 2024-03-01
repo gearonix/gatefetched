@@ -15,10 +15,9 @@ module.exports = configure({
         presets.node()
     ],
     extend: {
-        ignorePatterns: ['*.yaml', '*.json', '.eslintrc.cjs',
-            'dist', '*.md', 'playground'],
+        ignorePatterns: ['*.yaml', '*.json', '.eslintrc.cjs', 'dist', '*.md'],
         rules: {
-            'import/extensions': 'error',
+            'import/extensions': 'warn',
             'import/no-unresolved': 'warn'
         }
     }

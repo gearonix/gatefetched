@@ -1,9 +1,10 @@
+import { isAnyWebSocketEvent, safeParseJson } from '@/shared/lib'
+import type { Nil, WebsocketEvent } from '@/shared/types'
+import { isObject } from '@/shared/types'
 import {
   invalidOperationEventResponseError,
   websocketConnectionFailureError
 } from '../errors/create-error'
-import type { Nil, WebsocketEvent } from '../shared'
-import { isAnyWebSocketEvent, isObject, safeParseJson } from '../shared'
 import type {
   AdapterSubscribeOptions,
   AdapterSubscribeResult

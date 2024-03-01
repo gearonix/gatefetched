@@ -4,9 +4,9 @@ import type {
   SocketOptions
 } from 'socket.io-client'
 import { io as createIoClient } from 'socket.io-client'
-import { CONNECTION_EVENT, DISCONNECT_EVENT } from '../consts'
-import type { AnyFn } from '../shared'
-import { isAnyWebSocketEvent } from '../shared'
+import { CONNECTION_EVENT, DISCONNECT_EVENT } from '@/shared/consts'
+import { isAnyWebSocketEvent } from '@/shared/lib'
+import type { AnyFn } from '@/shared/types'
 import type {
   AdapterPublishOptions,
   AdapterSubscribeOptions,
@@ -33,7 +33,6 @@ export class IoAdapter extends AbstractWsAdapter<IoClient, IoOptions> {
   public subscribe(
     event: string,
     trigger: (result: AdapterSubscribeResult<unknown>) => void,
-    // TODO add options to public api
     options?: AdapterSubscribeOptions
   ) {
     const triggerEvent = (result: unknown) => trigger({ result })

@@ -1,4 +1,4 @@
-import type { AnyFn, AnyRecord, WebsocketInstance } from '../shared'
+import type { AnyFn, AnyRecord, WebsocketInstance } from '@/shared/types'
 
 export interface AdapterPublishOptions {
   withAck?: boolean

@@ -1,12 +1,12 @@
+/**
+ * https://github.com/igorkamyshev/farfetched
+ */
+
 import type { Contract, InvalidDataError } from '@farfetched/core'
 import { invalidDataError, unknownContract } from '@farfetched/core'
 import type { Effect } from 'effector'
 import { createEffect } from 'effector'
-import type { AdapterSubscribeResult } from '../adapters/abstract-adapter'
-
-/**
- * Was taken from @farfetched/core
- */
+import type { AdapterSubscribeResult } from '../../adapters/abstract-adapter'
 
 export function createContractApplier(
   contract: Contract<unknown, unknown> = unknownContract

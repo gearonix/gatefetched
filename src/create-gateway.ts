@@ -5,18 +5,19 @@ import type {
 } from '@farfetched/core'
 import { normalizeSourced } from '@farfetched/core'
 import type { Event, Store } from 'effector'
-import { createAdapter } from './adapters'
-import { AbstractWsAdapter } from './adapters/abstract-adapter'
-import type { CreateListener } from './listener'
-import { createListener } from './listener'
 import type {
   AnyRecord,
+  InterceptResponse,
   OperationStatus,
   WebsocketEvent,
   WebsocketEventsConfig,
   WebsocketInstance
-} from './shared'
-import { isObject } from './shared'
+} from '@/shared/types'
+import { isObject } from '@/shared/types'
+import { createAdapter } from './adapters'
+import { AbstractWsAdapter } from './adapters/abstract-adapter'
+import type { CreateListener } from './listener'
+import { createListener } from './listener'
 
 export interface BaseCreateGatewayParams<
   Instance extends WebsocketInstance = WebsocketInstance,
@@ -67,16 +68,6 @@ interface CreateDispatcher<Events extends WebsocketEvent> {
   ): Dispatcher<Params>
 
   (event: Events): Dispatcher<void>
-}
-
-export type InterceptType = 'incoming' | 'outgoing'
-export type InterceptStatus = 'done' | 'skip' | 'failed'
-
-export interface InterceptResponse<Data = unknown> {
-  type: InterceptType
-  status: InterceptStatus
-  scope: string
-  data: Data
 }
 
 interface WebsocketGateway<

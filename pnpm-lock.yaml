@@ -35,12 +35,6 @@ importers:
       lint-staged:
         specifier: ^15.2.2
         version: 15.2.2
-      patronum:
-        specifier: ^2.2.0
-        version: 2.2.0(effector@23.2.0)
-      pnpm:
-        specifier: ^8.15.4
-        version: 8.15.4
       rimraf:
         specifier: ^5.0.5
         version: 5.0.5
@@ -4425,14 +4419,6 @@ packages:
     resolution: {integrity: sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==}
     dev: true
 
-  /patronum@2.2.0(effector@23.2.0):
-    resolution: {integrity: sha512-Idsb5swd+2UI1NuBlHJuVA4WlaUeEluZJxGAZ9obCViuEf4pP68bij3f1sZCM/vqqWPsbHclYweDNt/sWu0O1g==}
-    peerDependencies:
-      effector: ^23
-    dependencies:
-      effector: 23.2.0
-    dev: true
-
   /perfect-debounce@1.0.0:
     resolution: {integrity: sha512-xCy9V055GLEqoFaHoC1SoLIaLmWctgCUaBaWxDZ7/Zx4CTyX7cJQLJOok/orfjZAh9kEYpjJa4d0KcJmCbctZA==}
     dev: true
@@ -4463,12 +4449,6 @@ packages:
   /pluralize@8.0.0:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
-    dev: true
-
-  /pnpm@8.15.4:
-    resolution: {integrity: sha512-C9Opvp6w6aaSZ23uwAowO6IYuiedmSQUdWFrOY267t0RFG+SwoQ0WPVXsdEn4J1MFx4QW9zWthACs5aFqAFrng==}
-    engines: {node: '>=16.14'}
-    hasBin: true
     dev: true
 
   /possible-typed-array-names@1.0.0:

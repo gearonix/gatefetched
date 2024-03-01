@@ -19,30 +19,29 @@ import {
   sample,
   split
 } from 'effector'
-import { and, equals, not } from 'patronum'
-import type {
-  AdapterSubscribeOptions,
-  AdapterSubscribeResult
-} from './adapters/abstract-adapter'
-import { ANY_WEBSOCKET_EVENT } from './consts'
-import type { GatewayParamsWithAdapter } from './create-gateway'
-import { createContractApplier } from './ff/apply-contract'
-import { checkValidationResult } from './ff/check-validation-result'
-import type { StaticOrReactive } from './ff/static-or-reactive'
-import { normalizeStaticOrReactive } from './ff/static-or-reactive'
-import { unwrapValidationResult } from './ff/unwrap-validation-result'
 import type {
   AnyFn,
   OperationStatus,
   WebsocketEvent,
   WebsocketEventsConfig
-} from './shared'
+} from '@/shared/types'
+import type {
+  AdapterSubscribeOptions,
+  AdapterSubscribeResult
+} from './adapters/abstract-adapter'
+import type { GatewayParamsWithAdapter } from './create-gateway'
+import { createContractApplier } from './libs/farfetched/apply-contract'
+import type { StaticOrReactive } from './libs/farfetched/static-or-reactive'
+import { normalizeStaticOrReactive } from './libs/farfetched/static-or-reactive'
 import {
-  identity,
-  ignoreSerialization,
-  isObject,
+  checkValidationResult,
+  unwrapValidationResult,
   validValidator
-} from './shared'
+} from './libs/farfetched/validation'
+import { and, equals, not } from './libs/patronum'
+import { ANY_WEBSOCKET_EVENT } from './shared/consts'
+import { identity, ignoreSerialization } from './shared/lib'
+import { isObject } from './shared/types'
 
 interface BaseListenerConfig<
   Events extends WebsocketEvent,
@@ -146,8 +145,7 @@ export interface CreateListener<
     }
   ): Listener<TransformedData, null, PrepareParams>
 
-  // TODO: enable this overload
-  // <Data, Event extends Events>(event: Event): Listener<Data>
+  <Data, Event extends Events>(event: Event): Listener<Data>
 }
 
 export const serializeEventName = <
@@ -409,6 +407,7 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
       '@@unitShape': unitShapeProtocol
     }
   }
+  // TODO: refactor everything here
 
   return createListenerImpl as CreateListener
 }

@@ -1,10 +1,6 @@
 import type { StoreWritable } from 'effector'
 import { createStore, is } from 'effector'
 
-/**
- * Was taken from @farfetched/core
- */
-
 export type StaticOrReactive<T> = T | StoreWritable<Exclude<T, undefined>>
 
 export function normalizeStaticOrReactive<T>(
