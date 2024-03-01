@@ -19,12 +19,7 @@ import {
   sample,
   split
 } from 'effector'
-import type {
-  AnyFn,
-  OperationStatus,
-  WebsocketEvent,
-  WebsocketEventsConfig
-} from '@/shared/types'
+import type { AnyFn, ListenerStatus, WebsocketEvent } from '@/shared/types'
 import type {
   AdapterSubscribeOptions,
   AdapterSubscribeResult
@@ -40,8 +35,9 @@ import {
 } from './libs/farfetched/validation'
 import { and, equals, not } from './libs/patronum'
 import { ANY_WEBSOCKET_EVENT } from './shared/consts'
-import { identity, ignoreSerialization } from './shared/lib'
-import { isObject } from './shared/types'
+import { identity, ignoreSerialization, serializeEventName } from './shared/lib'
+
+export type ListenerStatus = 'initial' | 'opened' | 'closed'
 
 interface BaseListenerConfig<
   Events extends WebsocketEvent,
@@ -69,7 +65,7 @@ interface BaseListenerConfig<
 // TODO split this type
 interface Listener<Data, InitialData = null, Params = unknown> {
   $enabled: Store<boolean>
-  $status: Store<OperationStatus>
+  $status: Store<ListenerStatus>
   $opened: Store<boolean>
   $idle: Store<boolean>
   $closed: Store<boolean>
@@ -145,15 +141,9 @@ export interface CreateListener<
     }
   ): Listener<TransformedData, null, PrepareParams>
 
+  // TODO: idk why this is working lmaooo
   <Data, Event extends Events>(event: Event): Listener<Data>
 }
-
-export const serializeEventName = <
-  Event extends WebsocketEvent = WebsocketEvent
->(
-  target: Event,
-  events: WebsocketEventsConfig<Event> | undefined
-): string => (isObject(events) ? events[target] : target)
 
 export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
   const createListenerImpl = ({
@@ -161,6 +151,8 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
     ...options
   }: BaseListenerConfig<WebsocketEvent, unknown>): Listener<unknown> => {
     const { adapter, ...config } = gatewayConfig
+
+    const normalizedName = serializeEventName(name, config.events)
 
     const listen = createEvent()
     const close = createEvent()
@@ -186,12 +178,12 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
 
     const $immediate = normalizeStaticOrReactive(options.immediate ?? true)
     const $enabled = normalizeStaticOrReactive(options.enabled ?? true)
-    const $status = createStore<OperationStatus>('initial', {
-      ...ignoreSerialization('status', name)
+    const $status = createStore<ListenerStatus>('initial', {
+      ...ignoreSerialization('status', normalizedName)
     })
 
     const $latestData = createStore<unknown>(options.initialData ?? null, {
-      ...ignoreSerialization('latestData', name)
+      ...ignoreSerialization('latestData', normalizedName)
     })
 
     const $idle = equals($status, 'initial')
@@ -201,8 +193,6 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
     const trigger = createEvent<AdapterSubscribeResult<unknown>>()
 
     const resetStatus = createEvent()
-
-    const normalizedName = serializeEventName(name, config.events)
 
     const listenRemoteSourceFx = createEffect({
       handler: () => {

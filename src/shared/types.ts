@@ -22,7 +22,6 @@ export type WebsocketEvent = string
 
 export type WebsocketInstance = SocketIoInstance | WebSocket
 
-export type OperationStatus = 'initial' | 'opened' | 'closed'
 
 export type InterceptType = 'incoming' | 'outgoing'
 

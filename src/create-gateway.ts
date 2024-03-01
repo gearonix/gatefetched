@@ -1,13 +1,8 @@
+import type { DynamicallySourcedField } from '@farfetched/core'
+import type { CreateDispatcher } from '@/dispatcher'
+import { createDispatcher } from '@/dispatcher'
 import type {
-  DynamicallySourcedField,
-  ParamsDeclaration,
-  SourcedField
-} from '@farfetched/core'
-import type { Event, Store } from 'effector'
-import type {
-  AnyRecord,
   InterceptResponse,
-  OperationStatus,
   WebsocketEvent,
   WebsocketEventsConfig,
   WebsocketInstance
@@ -21,7 +16,8 @@ import { createListener } from './listener'
 export interface BaseCreateGatewayParams<
   Instance extends WebsocketInstance = WebsocketInstance,
   InterceptSource = void,
-  DataSource = void
+  DataSource = void,
+  BodySource = void
 > {
   from: Instance
   intercept?: DynamicallySourcedField<
@@ -32,41 +28,10 @@ export interface BaseCreateGatewayParams<
   response?: {
     mapData?: DynamicallySourcedField<any, any, DataSource>
   }
-}
 
-interface Dispatcher<Params> {
-  $enabled: Store<boolean>
-  $status: Store<OperationStatus>
-  $executed: Store<boolean>
-
-  dispatch: Event<Params>
-
-  done: Event<{ params: Params }>
-
-  '@@unitShape': () => () => {
-    done: Store<boolean>
-    dispatch: Event<Params>
-  }
-}
-
-interface BaseDispatcherConfig<
-  Events extends WebsocketEvent,
-  Params,
-  BodySource = void
-> {
-  name: Events
-  params?: ParamsDeclaration<Params>
   request?: {
-    body?: SourcedField<Params, AnyRecord, BodySource>
+    mapBody?: DynamicallySourcedField<any, any, BodySource>
   }
-}
-
-interface CreateDispatcher<Events extends WebsocketEvent> {
-  <Params, BodySource = void>(
-    config: BaseDispatcherConfig<Events, Params, BodySource>
-  ): Dispatcher<Params>
-
-  (event: Events): Dispatcher<void>
 }
 
 interface WebsocketGateway<
@@ -121,12 +86,15 @@ export function createGateway<
 
   const mixedParams = { ...options, adapter } satisfies GatewayParamsWithAdapter
 
+  const listener = createListener(mixedParams)
+  const dispatcher = createDispatcher(mixedParams)
+
   return {
     instance,
     adapter,
-    listener: createListener(mixedParams)
-    // TODO: remove any
-  } as any
+    listener,
+    dispatcher
+  }
 }
 
 export type GatewayParamsWithAdapter = Omit<BaseCreateGatewayParams, 'from'> & {

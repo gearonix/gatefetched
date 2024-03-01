@@ -1,6 +1,8 @@
 import type { StoreWritable } from 'effector'
 import { createStore } from 'effector'
 import { ANY_WEBSOCKET_EVENT } from './consts'
+import type { WebsocketEvent, WebsocketEventsConfig } from './types'
+import { isObject } from './types'
 
 export function safeParseJson(json: string) {
   try {
@@ -35,6 +37,13 @@ export function ignoreSerialization(
     sid: compositeName
   }
 }
+
+export const serializeEventName = <
+  Event extends WebsocketEvent = WebsocketEvent
+>(
+  target: Event,
+  events: WebsocketEventsConfig<Event> | undefined
+): string => (isObject(events) ? events[target] : target)
 
 export const identity = <T>(value: T) => value
 

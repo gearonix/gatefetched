@@ -48,6 +48,6 @@ export abstract class AbstractWsAdapter<
   public abstract publish(
     event: string,
     params: AnyRecord,
-    options: AdapterPublishOptions
+    options?: AdapterPublishOptions
   ): void
 }
