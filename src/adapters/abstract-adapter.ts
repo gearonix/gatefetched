@@ -1,4 +1,4 @@
-import type { AnyFn, AnyObj, WebsocketInstance } from '../shared'
+import type { AnyFn, AnyRecord, WebsocketInstance } from '../shared'
 
 export interface AdapterPublishOptions {
   withAck?: boolean
@@ -10,8 +10,8 @@ export interface AdapterSubscribeOptions {
   dirty?: boolean
 }
 
-export interface SubscribeResponse<Result> {
-  data: Result
+export interface AdapterSubscribeResult<Result> {
+  result: Result
   overrideEvent?: string
 }
 
@@ -39,13 +39,15 @@ export abstract class AbstractWsAdapter<
 
   public abstract subscribe(
     event: string,
-    fn: AnyFn,
+    fn: (result: AdapterSubscribeResult<unknown>) => void,
     options?: AdapterSubscribeOptions
   ): void
 
+  public abstract unsubscribe(event: string): void
+
   public abstract publish(
     event: string,
-    params: AnyObj,
+    params: AnyRecord,
     options: AdapterPublishOptions
   ): void
 }

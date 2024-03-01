@@ -1,4 +1,6 @@
-import { createStore, StoreWritable } from 'effector'
+import type { Validator } from '@farfetched/core'
+import type { StoreWritable } from 'effector'
+import { createStore } from 'effector'
 import { Socket as SocketIoInstance } from 'socket.io-client'
 import { ANY_WEBSOCKET_EVENT } from './consts'
 
@@ -6,24 +8,24 @@ import { ANY_WEBSOCKET_EVENT } from './consts'
 type AnyKey = keyof any
 export type Nil = null | undefined
 
-export type AnyObj = Record<AnyKey, unknown>
+export type AnyRecord = Record<AnyKey, unknown>
 export type AnyFn = (...args: any[]) => unknown
 
 export type WebsocketEventsConfig<
-  Event extends WebsocketEvents = WebsocketEvents
+  Event extends WebsocketEvent = WebsocketEvent
 > = Record<Event, string> | Event[] | readonly Event[]
 
-export type WebsocketEvents = string
+export type WebsocketEvent = string
 
 export type WebsocketInstance = SocketIoInstance | WebSocket
 
-export type OperationStatus = 'initial' | 'waiting' | 'done'
+export type OperationStatus = 'initial' | 'opened' | 'closed'
 
 export const isFunction = (target: unknown): target is AnyFn =>
   typeof target === 'function'
 
-export const isObject = (target: unknown): target is AnyObj =>
-  typeof target === 'object' && target !== null
+export const isObject = (target: unknown): target is AnyRecord =>
+  typeof target === 'object' && target !== null && !Array.isArray(target)
 
 export const isAnyWebSocketEvent = (event: string): boolean =>
   event === ANY_WEBSOCKET_EVENT
@@ -61,3 +63,7 @@ export function ignoreSerialization(
     sid: compositeName
   }
 }
+
+export const validValidator: Validator<any, any, any> = () => true
+
+export const identity = <T>(value: T) => value

@@ -38,6 +38,7 @@
     "build": "unbuild",
     "dev": "unbuild --stub",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "prepublishOnly": "nr build",
     "release": "bumpp && npm publish",
     "start": "esno src/create-gateway.ts",
@@ -79,6 +80,6 @@
     "pre-commit": "pnpm lint-staged && pnpm typecheck"
   },
   "lint-staged": {
-    "*": "eslint --fix"
+    "*": "eslint . --fix"
   }
 }

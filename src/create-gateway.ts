@@ -8,29 +8,27 @@ import type { Event, Store } from 'effector'
 import { createAdapter } from './adapters'
 import { AbstractWsAdapter } from './adapters/abstract-adapter'
 import type { CreateListener } from './listener'
+import { createListener } from './listener'
 import type {
-  AnyObj,
+  AnyRecord,
   OperationStatus,
-  WebsocketEvents,
+  WebsocketEvent,
   WebsocketEventsConfig,
   WebsocketInstance
 } from './shared'
 import { isObject } from './shared'
 
-interface LogMessage {
-  type: 'request' | 'response'
-  message?: string
-  error?: unknown
-}
-
 export interface BaseCreateGatewayParams<
   Instance extends WebsocketInstance = WebsocketInstance,
-  LogSource = void,
+  InterceptSource = void,
   DataSource = void
 > {
   from: Instance
-  logs?: DynamicallySourcedField<LogMessage, unknown, LogSource> | boolean
-  events?: WebsocketEventsConfig
+  intercept?: DynamicallySourcedField<
+    InterceptResponse,
+    unknown,
+    InterceptSource
+  >
   response?: {
     mapData?: DynamicallySourcedField<any, any, DataSource>
   }
@@ -52,18 +50,18 @@ interface Dispatcher<Params> {
 }
 
 interface BaseDispatcherConfig<
-  Events extends WebsocketEvents,
+  Events extends WebsocketEvent,
   Params,
   BodySource = void
 > {
   name: Events
   params?: ParamsDeclaration<Params>
   request?: {
-    body?: SourcedField<Params, AnyObj, BodySource>
+    body?: SourcedField<Params, AnyRecord, BodySource>
   }
 }
 
-interface CreateDispatcher<Events extends WebsocketEvents> {
+interface CreateDispatcher<Events extends WebsocketEvent> {
   <Params, BodySource = void>(
     config: BaseDispatcherConfig<Events, Params, BodySource>
   ): Dispatcher<Params>
@@ -71,9 +69,19 @@ interface CreateDispatcher<Events extends WebsocketEvents> {
   (event: Events): Dispatcher<void>
 }
 
+export type InterceptType = 'incoming' | 'outgoing'
+export type InterceptStatus = 'done' | 'skip' | 'failed'
+
+export interface InterceptResponse<Data = unknown> {
+  type: InterceptType
+  status: InterceptStatus
+  scope: string
+  data: Data
+}
+
 interface WebsocketGateway<
   Instance extends WebsocketInstance,
-  Events extends WebsocketEvents = WebsocketEvents
+  Events extends WebsocketEvent = WebsocketEvent
 > {
   $instance: Store<Instance>
   listener: CreateListener<Events>
@@ -82,14 +90,14 @@ interface WebsocketGateway<
 
 type CreateGatewayParamsWithEvents<
   Instance extends WebsocketInstance,
-  Events extends WebsocketEvents
+  Events extends WebsocketEvent
 > = BaseCreateGatewayParams<Instance> & {
   events: WebsocketEventsConfig<Events>
 }
 
 export type CreateGatewayParams<
   Instance extends WebsocketInstance,
-  Events extends WebsocketEvents = WebsocketEvents
+  Events extends WebsocketEvent = WebsocketEvent
 > =
   | BaseCreateGatewayParams<Instance>
   | CreateGatewayParamsWithEvents<Instance, Events>
@@ -101,7 +109,7 @@ export function createGateway<Instance extends WebsocketInstance>(
 
 export function createGateway<
   Instance extends WebsocketInstance,
-  const Events extends WebsocketEvents
+  Events extends WebsocketEvent
 >(
   options: BaseCreateGatewayParams<Instance> & {
     events: WebsocketEventsConfig<Events>
@@ -114,20 +122,24 @@ export function createGateway<Instance extends WebsocketInstance>(
 
 export function createGateway<
   Instance extends WebsocketInstance,
-  Events extends WebsocketEvents
+  Events extends WebsocketEvent
 >(params: CreateGatewayParams<Instance, Events>): WebsocketGateway<any> {
   const { instance, options } = normalizeCreateGatewayParams(params)
 
   const adapter = createAdapter({ instance })
 
+  const mixedParams = { ...options, adapter } satisfies GatewayParamsWithAdapter
+
   return {
-    $instance: normalizeSourced({ field: adapter })
+    $instance: normalizeSourced({ field: adapter }),
+    listener: createListener(mixedParams)
     // TODO: remove any
   } as any
 }
 
 export type GatewayParamsWithAdapter = Omit<BaseCreateGatewayParams, 'from'> & {
   adapter: AbstractWsAdapter
+  events?: WebsocketEventsConfig<any>
 }
 
 interface CreateGatewayParamsNormalized<Instance> {
@@ -137,7 +149,7 @@ interface CreateGatewayParamsNormalized<Instance> {
 
 export function normalizeCreateGatewayParams<
   Instance extends WebsocketInstance,
-  Events extends WebsocketEvents
+  Events extends WebsocketEvent
 >(
   params: CreateGatewayParams<Instance, Events>
 ): CreateGatewayParamsNormalized<Instance> {
@@ -147,11 +159,11 @@ export function normalizeCreateGatewayParams<
   const resultParams = {} as CreateGatewayParamsNormalized<Instance>
 
   if (isBaseGatewayConfig(params)) {
-    const { from, ...configParams } =
+    const { from: instance, ...configParams } =
       params as BaseCreateGatewayParams<Instance>
 
     Object.assign(resultParams, {
-      from,
+      instance,
       options: configParams
     })
 
@@ -160,7 +172,7 @@ export function normalizeCreateGatewayParams<
   const instance = params as Instance
 
   Object.assign(resultParams, {
-    from: instance,
+    instance,
     options: {}
   })
 

@@ -2,17 +2,17 @@ import type { Contract, InvalidDataError } from '@farfetched/core'
 import { invalidDataError, unknownContract } from '@farfetched/core'
 import type { Effect } from 'effector'
 import { createEffect } from 'effector'
+import type { AdapterSubscribeResult } from '../adapters/abstract-adapter'
 
 /**
- * @internal
  * Was taken from @farfetched/core
  */
 
 export function createContractApplier(
   contract: Contract<unknown, unknown> = unknownContract
-): Effect<{ params: unknown; result: unknown }, unknown, InvalidDataError> {
+): Effect<AdapterSubscribeResult<unknown>, unknown, InvalidDataError> {
   const applyContractFx = createEffect<
-    { params: unknown; result: unknown },
+    AdapterSubscribeResult<unknown>,
     unknown,
     InvalidDataError
   >({

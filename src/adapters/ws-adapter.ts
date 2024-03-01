@@ -2,11 +2,11 @@ import {
   invalidOperationEventResponseError,
   websocketConnectionFailureError
 } from '../errors/create-error'
-import type { Nil } from '../shared'
+import type { Nil, WebsocketEvent } from '../shared'
 import { isAnyWebSocketEvent, isObject, safeParseJson } from '../shared'
 import type {
   AdapterSubscribeOptions,
-  SubscribeResponse
+  AdapterSubscribeResult
 } from './abstract-adapter'
 import { AbstractWsAdapter } from './abstract-adapter'
 import { AdapterMeta } from './matchers'
@@ -48,6 +48,8 @@ export class WebsocketAdapter extends AbstractWsAdapter<
   WebSocket,
   WebsocketProtocols
 > {
+  private readonly attendedEvents: Set<WebsocketEvent> = new Set()
+
   constructor(client: WebSocket) {
     super(client)
 
@@ -77,12 +79,14 @@ export class WebsocketAdapter extends AbstractWsAdapter<
   }
 
   public subscribe(
-    event: string,
-    trigger: (result: SubscribeResponse<unknown>) => void,
-    options: AdapterSubscribeOptions
+    event: WebsocketEvent,
+    trigger: (result: AdapterSubscribeResult<unknown>) => void,
+    options?: AdapterSubscribeOptions
   ) {
+    this.attendedEvents.add(event)
+
     const handleIncomingMessage = (evt: MessageEvent) => {
-      if (options.once) {
+      if (options?.once) {
         this.client.removeEventListener('message', handleIncomingMessage)
       }
 
@@ -91,18 +95,26 @@ export class WebsocketAdapter extends AbstractWsAdapter<
       const parsedResult = safeParseJson(evt.data)
 
       if (isAnyWebSocketEvent(event)) {
-        trigger({ data: parsedResult })
+        trigger({ result: parsedResult })
         return
       }
 
       assertWsOperationWithEvent(parsedResult)
 
-      if (parsedResult.event === event) {
-        trigger({ data: parsedResult.data })
+      if (!this.attendedEvents.has(event)) return
+
+      const isMatchedEvent = parsedResult.event === event
+
+      if (isMatchedEvent) {
+        trigger({ result: parsedResult.data })
       }
     }
 
     this.client.addEventListener('message', handleIncomingMessage)
+  }
+
+  public async unsubscribe(event: string) {
+    this.attendedEvents.delete(event)
   }
 
   public async publish<Params extends unknown>(

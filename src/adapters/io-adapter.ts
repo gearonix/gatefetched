@@ -10,7 +10,7 @@ import { isAnyWebSocketEvent } from '../shared'
 import type {
   AdapterPublishOptions,
   AdapterSubscribeOptions,
-  SubscribeResponse
+  AdapterSubscribeResult
 } from './abstract-adapter'
 import { AbstractWsAdapter } from './abstract-adapter'
 import { AdapterMeta } from './matchers'
@@ -32,26 +32,31 @@ export class IoAdapter extends AbstractWsAdapter<IoClient, IoOptions> {
 
   public subscribe(
     event: string,
-    trigger: (result: SubscribeResponse<unknown>) => void,
-    { dirty, ...options }: AdapterSubscribeOptions
+    trigger: (result: AdapterSubscribeResult<unknown>) => void,
+    // TODO add options to public api
+    options?: AdapterSubscribeOptions
   ) {
-    const triggerEvent = (data: unknown) => trigger({ data })
+    const triggerEvent = (result: unknown) => trigger({ result })
 
-    if (!dirty) this.client.off(event)
+    if (!options?.dirty) this.client.off(event)
 
     if (isAnyWebSocketEvent(event)) {
       this.client.onAny((overrideEvent, data) => {
-        trigger({ overrideEvent, data })
+        trigger({ overrideEvent, result: data })
       })
       return
     }
 
-    if (options.once) {
+    if (options?.once) {
       this.client.once(event, triggerEvent)
       return
     }
 
     this.client.on(event, triggerEvent)
+  }
+
+  public unsubscribe(event: string) {
+    this.client.off(event)
   }
 
   public async publish<Params extends unknown>(
