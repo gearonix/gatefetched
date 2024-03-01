@@ -29,7 +29,6 @@ export const AdapterMeta = {
 } as const
 
 // guards
-
 function isSocketIoInstance(
   instance: unknown | IoInstance
 ): instance is IoInstance {

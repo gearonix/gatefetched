@@ -61,10 +61,6 @@ export class WebsocketAdapter extends AbstractWsAdapter<
     this.client.addEventListener('error', (error: Event) => {
       throw websocketConnectionFailureError(error)
     })
-
-    this.client.addEventListener('close', (evt: Event) => {
-      // TODO: extend
-    })
   }
 
   public bindConnect(callback: (evt: Event) => unknown) {
