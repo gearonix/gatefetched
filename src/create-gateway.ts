@@ -3,7 +3,6 @@ import type {
   ParamsDeclaration,
   SourcedField
 } from '@farfetched/core'
-import { normalizeSourced } from '@farfetched/core'
 import type { Event, Store } from 'effector'
 import type {
   AnyRecord,
@@ -74,7 +73,8 @@ interface WebsocketGateway<
   Instance extends WebsocketInstance,
   Events extends WebsocketEvent = WebsocketEvent
 > {
-  $instance: Store<Instance>
+  instance: Instance
+  adapter: AbstractWsAdapter<Instance>
   listener: CreateListener<Events>
   dispatcher: CreateDispatcher<Events>
 }
@@ -122,7 +122,8 @@ export function createGateway<
   const mixedParams = { ...options, adapter } satisfies GatewayParamsWithAdapter
 
   return {
-    $instance: normalizeSourced({ field: adapter }),
+    instance,
+    adapter,
     listener: createListener(mixedParams)
     // TODO: remove any
   } as any

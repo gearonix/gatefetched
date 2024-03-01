@@ -31,7 +31,7 @@ export abstract class AbstractWsAdapter<
 
   public abstract createConnection(url: string, options?: Options): Client
 
-  public close() {
+  protected close() {
     this.client.close()
   }
 

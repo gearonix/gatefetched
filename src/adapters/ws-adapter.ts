@@ -130,6 +130,6 @@ export class WebsocketAdapter extends AbstractWsAdapter<
   }
 
   public get kind() {
-    return AdapterMeta.BASE_WEBSOCKET
+    return AdapterMeta.WS_DOM
   }
 }

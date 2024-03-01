@@ -18,6 +18,7 @@ import { AdapterMeta } from './matchers'
 export type IoOptions = ManagerOptions & SocketOptions
 
 export class IoAdapter extends AbstractWsAdapter<IoClient, IoOptions> {
+  // move to public api
   public bindConnect<Fn extends AnyFn>(cb: Fn) {
     this.client.on(CONNECTION_EVENT, cb)
   }

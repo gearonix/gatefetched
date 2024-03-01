@@ -49,60 +49,60 @@ interface BaseListenerConfig<
   PrepareParams = void,
   ValidationSource = void,
   TransformedData = void,
-  DataSource = void
+  DataSource = void,
+  ValidateParams = unknown
 > {
   name?: Events
   initialData?: Partial<Data>
   dispatch?: StaticOrReactive<PrepareParams>
 
   immediate?: StaticOrReactive<boolean>
-
   enabled?: StaticOrReactive<boolean>
-
   response?: {
     contract?: Contract<unknown, Data>
-    // TODO
-    validate?: Validator<Data, any, ValidationSource>
+    validate?: Validator<Data, ValidateParams, ValidationSource>
     mapData?: DynamicallySourcedField<Data, TransformedData, DataSource>
   }
-
   adapter?: AdapterSubscribeOptions
 }
 
+// TODO split this type
 interface Listener<Data, InitialData = null, Params = unknown> {
   $enabled: Store<boolean>
   $status: Store<OperationStatus>
-
   $opened: Store<boolean>
   $idle: Store<boolean>
   $closed: Store<boolean>
-
   $data: Store<Data | InitialData>
 
   listen: EventCallable<void>
   close: EventCallable<void>
+  dispatch: EventCallable<Params>
 
   done: Event<{ result: Data; params?: Params }>
-
   finished: {
     done: Event<{ result: Data; params?: Params }>
     skip: Event<void>
   }
+  failed: Event<{
+    error: FarfetchedError<any>
+    params: unknown
+  }>
 
   '@@unitShape': () => {
     data: Store<Data | InitialData>
-
     listen: Event<void>
     close: Event<void>
-
     enabled: Store<boolean>
-
     opened: Store<boolean>
-
     closed: Store<boolean>
     idle: Store<boolean>
-
+    dispatch: EventCallable<Params>
     done: Event<{ result: Data; params?: Params }>
+    failed: Event<{
+      error: FarfetchedError<any>
+      params: unknown
+    }>
   }
 }
 
@@ -166,6 +166,9 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
     const close = createEvent()
 
     const started = createEvent()
+
+    // TODO implement dispatch
+    const dispatch = createEvent<unknown>()
 
     const failed = createEvent<{
       error: FarfetchedError<any>
@@ -281,6 +284,8 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
         validDataReceived: ({ validation }) => checkValidationResult(validation)
       }
     )
+    // TODO file refactoring
+    //  based on farfetched repository
 
     const mapGlobalData = sample({
       clock: validDataReceived,
@@ -384,6 +389,8 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
       closed: $closed,
       opened: $opened,
       listen,
+      failed,
+      dispatch,
       done: finished.done
     }
 
@@ -401,9 +408,11 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
       $idle,
       $closed,
       finished,
+      failed,
       listen,
       done: finished.done,
       $data: $latestData,
+      dispatch,
       '@@unitShape': unitShapeProtocol
     }
   }

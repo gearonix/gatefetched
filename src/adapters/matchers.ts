@@ -25,7 +25,7 @@ export const adapterMatchers = [
 
 export const AdapterMeta = {
   SOCKET_IO: 'socket.io',
-  BASE_WEBSOCKET: 'websocket'
+  WS_DOM: 'websocket-dom'
 } as const
 
 // guards
