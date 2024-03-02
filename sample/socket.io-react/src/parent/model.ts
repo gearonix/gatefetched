@@ -1,45 +1,21 @@
 import { zodContract } from '@farfetched/zod'
-import { createGateway, declareParams } from '@lib'
-import { createLogger } from '@neodx/log'
+import { attachGate, declareParams } from '@lib'
 import { createEvent, createStore } from 'effector'
 import { createGate } from 'effector-react'
-import { io } from 'socket.io-client'
 import { z } from 'zod'
+import { gateway } from '../gateway'
 import type { Message } from '../shared/types'
-import { protocolEvents } from './events'
-
-const logger = createLogger()
-
-const socketInstance = io('http://localhost:6868')
-
-export const gateway = createGateway({
-  from: socketInstance,
-  intercept: ({ status, ...response }) => {
-    if (status === 'failed') {
-      return logger.error(response)
-    }
-    if (status === 'skip') {
-      return logger.warn(response)
-    }
-
-    logger.success({ status, ...response })
-  },
-  events: protocolEvents,
-  response: {
-    mapData: ({ payload }) => payload
-  }
-})
 
 export const ParentGate = createGate()
 
-gateway.bindGate(ParentGate)
+const parent = attachGate(gateway, ParentGate)
 
 const messageSentContract = z.object({
   id: z.string(),
   message: z.string().min(2)
 })
 
-export const messageSent = gateway.listener({
+export const messageSent = parent.listener({
   name: 'MESSAGE_RECEIVED',
   response: {
     contract: zodContract(messageSentContract),
@@ -47,7 +23,7 @@ export const messageSent = gateway.listener({
   }
 })
 
-export const sendMessage = gateway.dispatcher({
+export const sendMessage = parent.dispatcher({
   name: 'SEND_MESSAGE',
   params: declareParams<string>(),
   adapter: {

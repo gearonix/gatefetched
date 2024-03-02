@@ -1,8 +1,8 @@
 import type { DynamicallySourcedField } from '@farfetched/core'
-import type { EventCallable, Store } from 'effector'
+import type { Store } from 'effector'
+import { createStore } from 'effector'
 import type { CreateDispatcher } from '@/dispatcher'
 import { createDispatcher } from '@/dispatcher'
-import { createGateManager } from '@/gate-manager'
 import type {
   AnyEffectorGate,
   InterceptResponse,
@@ -31,22 +31,22 @@ export interface BaseCreateGatewayParams<
   response?: {
     mapData?: DynamicallySourcedField<any, any, DataSource>
   }
+  __?: {
+    scopedGate?: AnyEffectorGate
+  }
 }
 
-export type WebsocketGateway<
+export type ProtocolGateway<
   Instance extends ProtocolInstance,
   Events extends ProtocolEvent = ProtocolEvent
 > = {
   instance: Instance
   adapter: AbstractProtocolAdapter<Instance>
   listener: CreateListener<Events>
-  bindGate: (gate: AnyEffectorGate) => void
   __: {
-    gate: {
-      provide: EventCallable<AnyEffectorGate>
-      clear: EventCallable<void>
-    }
+    scopeReady: Store<boolean>
     kind: symbol
+    options: CreateGatewayParamsNormalized<Instance>['options']
   }
 } & (Instance extends OneSidedProtocols
   ? Record<string, never>
@@ -73,7 +73,7 @@ export const GatewaySymbol = Symbol('Gateway')
 
 export function createGateway<Instance extends ProtocolInstance>(
   options: BaseCreateGatewayParams<Instance>
-): WebsocketGateway<Instance>
+): ProtocolGateway<Instance>
 
 export function createGateway<
   Instance extends ProtocolInstance,
@@ -82,21 +82,22 @@ export function createGateway<
   options: BaseCreateGatewayParams<Instance> & {
     events: ProtocolEventConfig<Events>
   }
-): WebsocketGateway<Instance, Events>
+): ProtocolGateway<Instance, Events>
 
 export function createGateway<Instance extends ProtocolInstance>(
   instance: Instance
-): WebsocketGateway<Instance>
+): ProtocolGateway<Instance>
 
 export function createGateway<
   Instance extends ProtocolInstance,
   Events extends ProtocolEvent
->(params: CreateGatewayParams<Instance, Events>): WebsocketGateway<any> {
-  const { instance, options } = normalizeCreateGatewayParams(params)
+>(rawParams: CreateGatewayParams<Instance, Events>): ProtocolGateway<any> {
+  const { instance, options } = normalizeCreateGatewayParams(rawParams)
+
+  const scopedGate = options.__?.scopedGate
+  const $scopeReady = scopedGate?.status ?? createStore(true)
 
   const adapter = createAdapter({ instance })
-
-  const { $scopeReady, manager: gateManager } = createGateManager()
 
   const mixedParams = {
     ...options,
@@ -114,10 +115,10 @@ export function createGateway<
     adapter,
     listener,
     dispatcher,
-    bindGate: gateManager.provide,
     __: {
-      gate: gateManager,
-      kind: GatewaySymbol
+      scopeReady: $scopeReady,
+      kind: GatewaySymbol,
+      options
     }
   }
 }

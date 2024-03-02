@@ -1,14 +1,15 @@
 import { zodContract } from '@farfetched/zod'
+import { attachGate } from '@lib'
 import { sample } from 'effector'
 import { createGate } from 'effector-react'
-import { gateway } from '../parent/model'
+import { gateway } from '../gateway'
 import { postsReceivedContract as contract } from './contract'
 
 export const ChildGate = createGate()
 
-gateway.bindGate(ChildGate)
+const child = attachGate(gateway, ChildGate)
 
-export const postsReceived = gateway.listener({
+export const postsReceived = child.listener({
   name: 'POSTS_RECEIVED',
   initialData: [],
   adapter: { dirty: true },
@@ -17,7 +18,7 @@ export const postsReceived = gateway.listener({
   }
 })
 
-export const receivePosts = gateway.dispatcher('RECEIVE_POSTS')
+export const receivePosts = child.dispatcher('RECEIVE_POSTS')
 
 sample({
   clock: ChildGate.open,

@@ -1,3 +1,13 @@
+// public api
+export { attachGate } from './attach-gate'
+export { createGateway } from './create-gateway'
+
+// interfaces
+export type {
+  BaseCreateGatewayParams,
+  CreateGatewayParams,
+  ProtocolGateway
+} from './create-gateway'
 export type {
   BaseDispatcherConfig,
   CreateDispatcher,
@@ -23,12 +33,8 @@ export type {
   Listener,
   ListenerStatus
 } from './listener'
+
+// utils
 export * from './shared/consts'
 export * from './shared/types'
 export * from './shared/utils'
-export type {
-  BaseCreateGatewayParams,
-  CreateGatewayParams,
-  WebsocketGateway
-} from './create-gateway'
-export { createGateway } from './create-gateway'
