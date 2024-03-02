@@ -43,13 +43,14 @@ export type ListenerStatus = 'initial' | 'opened' | 'closed'
 export interface BaseListenerConfig<
   Events extends ProtocolEvent,
   Data,
+  InitialData = null,
   ValidationSource = void,
   TransformedData = void,
   DataSource = void,
   ValidateParams = unknown
 > {
   name?: Events
-  initialData?: Partial<Data>
+  initialData?: InitialData
   immediate?: StaticOrReactive<boolean>
   enabled?: StaticOrReactive<boolean>
   response?: {
@@ -70,7 +71,7 @@ export interface Listener<Data, InitialData = null, Params = unknown> {
   listen: EventCallable<void>
   close: EventCallable<void>
 
-  done: Event<{ result: Data; params?: Params }>
+  done: EventCallable<{ result: Data; params?: Params }>
   finished: {
     done: Event<{ result: Data; params?: Params }>
     skip: Event<void>
@@ -97,21 +98,31 @@ export interface Listener<Data, InitialData = null, Params = unknown> {
 }
 
 export interface CreateListener<Events extends ProtocolEvent = ProtocolEvent> {
-  <Data, ValidationSource = void>(
-    config: BaseListenerConfig<Events, Data, ValidationSource>
-  ): Listener<Data>
-
-  <Data, TransformedData, DataSource = void, ValidationSource = void>(
+  <
+    Data,
+    TransformedData,
+    DataSource = void,
+    ValidationSource = void,
+    InitialData = null
+  >(
     config: BaseListenerConfig<
       Events,
       Data,
+      InitialData,
       ValidationSource,
       TransformedData,
       DataSource
     > & {
-      mapData: DynamicallySourcedField<Data, TransformedData, DataSource>
+      response: {
+        mapData: DynamicallySourcedField<Data, TransformedData, DataSource>
+      }
     }
-  ): Listener<TransformedData>
+  ): Listener<TransformedData, InitialData>
+
+  <Data, ValidationSource = void, InitialData = null>(
+    config: BaseListenerConfig<Events, Data, InitialData, ValidationSource>
+  ): Listener<Data, InitialData>
+
   <Data, Event extends Events>(event: Event): Listener<Data>
   <Data>(): Listener<Data>
 }
@@ -209,9 +220,22 @@ export function createListener(gatewayConfig: PreparedGatewayParams) {
       target: $status
     })
 
-    sample({
+    const mapGlobalData = sample({
       clock: trigger,
       filter: $enabled,
+      source: {
+        mapper: normalizeSourced({
+          field: config.response?.mapData ?? identity
+        })
+      },
+      fn: ({ mapper }, { result, ...meta }) => ({
+        result: mapper(result),
+        ...meta
+      })
+    })
+
+    sample({
+      clock: mapGlobalData,
       target: applyContractFx
     })
 
@@ -239,21 +263,8 @@ export function createListener(gatewayConfig: PreparedGatewayParams) {
       }
     )
 
-    const mapGlobalData = sample({
-      clock: validDataReceived,
-      source: {
-        mapper: normalizeSourced({
-          field: config.response?.mapData ?? identity
-        })
-      },
-      fn: ({ mapper }, { params, result }) => ({
-        result: mapper(result),
-        params
-      })
-    })
-
     const mapScopedData = sample({
-      clock: mapGlobalData,
+      clock: validDataReceived,
       source: {
         mapper: normalizeSourced({
           field: options.response?.mapData ?? identity

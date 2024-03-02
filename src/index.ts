@@ -30,5 +30,5 @@ export type {
   BaseCreateGatewayParams,
   CreateGatewayParams,
   WebsocketGateway
-} from '@/create-gateway'
-export { createGateway } from '@/create-gateway'
+} from './create-gateway'
+export { createGateway } from './create-gateway'
