@@ -177,17 +177,13 @@ export function createListener(gatewayConfig: PreparedGatewayParams) {
 
     const resetStatus = createEvent()
 
-    const listenRemoteSourceFx = createEffect({
-      handler: () => {
-        adapter.subscribe(normalizedName, trigger, options.adapter)
-      }
-    })
+    const listenRemoteSourceFx = createEffect(() =>
+      adapter.subscribe(normalizedName, trigger, options.adapter)
+    )
 
-    const closeRemoteSourceFx = createEffect({
-      handler: () => {
-        adapter.unsubscribe(normalizedName)
-      }
-    })
+    const closeRemoteSourceFx = createEffect(() =>
+      adapter.unsubscribe(normalizedName)
+    )
 
     sample({
       clock: listen,

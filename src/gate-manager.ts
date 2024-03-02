@@ -12,6 +12,8 @@ export interface GateManager {
 }
 
 export function createGateManager(): GateManager {
+  // TODO: rewrite on reshape
+
   const $scopedGate = createStore<AnyEffectorGate | null>(null, {
     serialize: 'ignore',
     name: 'farsocket.$scopedGate',

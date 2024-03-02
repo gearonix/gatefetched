@@ -12,7 +12,7 @@ import type { AdapterPublishOptions } from '@/adapters/abstract-adapter'
 import type { PreparedGatewayParams } from '@/create-gateway'
 import type { StaticOrReactive } from '@/libs/farfetched'
 import { normalizeStaticOrReactive } from '@/libs/farfetched'
-import { and, empty, equals, not, or } from '@/libs/patronum'
+import { and, equals, not } from '@/libs/patronum'
 import {
   createArrayStore,
   identity,
@@ -117,11 +117,9 @@ export function createDispatcher(gatewayConfig: PreparedGatewayParams) {
       skip: createEvent()
     }
 
-    const publishFx = createEffect<{ body: unknown }, void>({
-      handler: async ({ body }) => {
-        adapter.publish(normalizedName, body, options.adapter)
-      }
-    })
+    const publishFx = createEffect<{ body: unknown }, void>(({ body }) =>
+      adapter.publish(normalizedName, body, options.adapter)
+    )
 
     const publishToRemoteSourceFx = createEffect(
       attach({
