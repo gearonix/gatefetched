@@ -12,16 +12,18 @@ import type { AdapterPublishOptions } from '@/adapters/abstract-adapter'
 import type { GatewayParamsWithAdapter } from '@/create-gateway'
 import type { StaticOrReactive } from '@/libs/farfetched'
 import { normalizeStaticOrReactive } from '@/libs/farfetched'
-import { equals } from '@/libs/patronum'
+import { equals, not } from '@/libs/patronum'
 import { identity, ignoreSerialization, serializeEventName } from '@/shared/lib'
-import type { AnyRecord, WebsocketEvent } from '@/shared/types'
+import type { WebsocketEvent } from '@/shared/types'
+import { isString } from '@/shared/types'
 
 export type DispatcherStatus = 'initial' | 'sent'
 
 interface BaseDispatcherConfig<
   Events extends WebsocketEvent,
   Params,
-  BodySource = void
+  BodySource = void,
+  MappedBody = void
 > {
   name: Events
   params?: ParamsDeclaration<Params>
@@ -29,7 +31,7 @@ interface BaseDispatcherConfig<
   adapter?: AdapterPublishOptions
 
   request?: {
-    mapBody?: SourcedField<Params, AnyRecord, BodySource>
+    mapBody?: SourcedField<Params, MappedBody, BodySource>
   }
 }
 
@@ -40,10 +42,16 @@ interface Dispatcher<Params> {
   $idle: Store<boolean>
   dispatch: EventCallable<Params>
   done: Event<{ params: Params }>
+  finished: {
+    done: Event<{ params?: Params }>
+    skip: Event<void>
+  }
+  $latestParams: Store<Params>
 
   '@@unitShape': () => {
     done: Event<{ params: Params }>
     dispatch: EventCallable<Params>
+    latestParams: Store<Params>
     enabled: Store<boolean>
     status: Store<DispatcherStatus>
     sent: Store<boolean>
@@ -58,19 +66,29 @@ export interface CreateDispatcher<
     config: BaseDispatcherConfig<Events, Params, BodySource>
   ): Dispatcher<Params>
 
-  // TODO: enable overload
-  // (event: Events): Dispatcher<void>
+  (event: Events): Dispatcher<void>
 }
 
 export function createDispatcher(gatewayConfig: GatewayParamsWithAdapter) {
+  type CreateDispatcherOptions =
+    | BaseDispatcherConfig<WebsocketEvent, unknown, unknown>
+    | WebsocketEvent
+
+  const normalizeCreateDispatcherParams = (
+    options: CreateDispatcherOptions
+  ): BaseDispatcherConfig<WebsocketEvent, unknown, unknown> =>
+    isString(options) ? { name: options } : options
+
   const createDispatcherImpl = (
-    options: BaseDispatcherConfig<WebsocketEvent, unknown, unknown>
-  ): Dispatcher<any> => {
+    rawOptions: CreateDispatcherOptions
+  ): Dispatcher<unknown> => {
+    const options = normalizeCreateDispatcherParams(rawOptions)
+
     const { adapter, ...config } = gatewayConfig
 
     const normalizedName = serializeEventName(options.name, config.events)
 
-    const $enabled = normalizeStaticOrReactive(options.enabled ?? false)
+    const $enabled = normalizeStaticOrReactive(options.enabled ?? true)
 
     const $status = createStore<DispatcherStatus>('initial', {
       ...ignoreSerialization('status', normalizedName)
@@ -85,25 +103,27 @@ export function createDispatcher(gatewayConfig: GatewayParamsWithAdapter) {
     const $idle = equals($status, 'initial')
     const $sent = equals($status, 'sent')
 
-    const dispatch = createEvent<AnyRecord>()
-    const published = createEvent<{ params: unknown }>()
+    const dispatch = createEvent<unknown>()
 
-    const publishFx = createEffect<{ body: AnyRecord }, void>({
+    const finished = {
+      done: createEvent<{ params: unknown }>(),
+      skip: createEvent()
+    }
+
+    const publishFx = createEffect<{ body: unknown }, void>({
       handler: async ({ body }) => {
         adapter.publish(normalizedName, body, options.adapter)
       }
     })
 
-    // TODO: mapGlobalData
-
     const publishToRemoteSourceFx = createEffect(
       attach({
         source: {
           mapBody: normalizeSourced({
-            field: options.request?.mapBody ?? identity<AnyRecord>
+            field: options.request?.mapBody ?? identity
           })
         },
-        mapParams: (params: AnyRecord, { mapBody }) => ({
+        mapParams: (params: unknown, { mapBody }) => ({
           body: mapBody(params)
         }),
         effect: publishFx
@@ -119,15 +139,21 @@ export function createDispatcher(gatewayConfig: GatewayParamsWithAdapter) {
     })
 
     sample({
+      clock: dispatch,
+      filter: not($enabled),
+      target: finished.skip
+    })
+
+    sample({
       clock: publishFx.done,
       fn: ({ params }) => ({
         params: params.body
       }),
-      target: published
+      target: finished.done
     })
 
     sample({
-      clock: published,
+      clock: finished.done,
       target: $latestParams
     })
 
@@ -136,13 +162,39 @@ export function createDispatcher(gatewayConfig: GatewayParamsWithAdapter) {
       target: $status
     })
 
+    sample({
+      clock: [
+        finished.done.map((result) => ({
+          result,
+          status: 'done' as const
+        })),
+        finished.skip.map(() => ({
+          result: null,
+          status: 'skip' as const
+        }))
+      ],
+      source: {
+        interceptor: normalizeSourced({ field: config.intercept ?? identity })
+      },
+      fn: ({ interceptor }, { result, status }) => {
+        interceptor({
+          scope: normalizedName,
+          type: 'outgoing',
+          data: result,
+          status
+        })
+      }
+    })
+
     const unitShape = {
       status: $status,
       sent: $sent,
       idle: $idle,
       enabled: $enabled,
+      latestParams: $latestParams,
       dispatch,
-      done: published
+      finished,
+      done: finished.done
     }
 
     const unitShapeProtocol = () => unitShape
@@ -153,7 +205,9 @@ export function createDispatcher(gatewayConfig: GatewayParamsWithAdapter) {
       $idle,
       $enabled,
       dispatch,
-      done: published,
+      finished,
+      done: finished.done,
+      $latestParams,
       '@@unitShape': unitShapeProtocol
     }
   }

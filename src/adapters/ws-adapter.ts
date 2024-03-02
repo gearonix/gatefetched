@@ -118,11 +118,15 @@ export class WebsocketAdapter extends AbstractWsAdapter<
     event: string | Nil,
     params?: Params
   ) {
-    if (this.client.readyState === ReadyState.OPEN_STATE) {
-      const serializedParams = event ? createWsOperation(event, params) : params
+    this.client.addEventListener('open', () => {
+      if (this.client.readyState === ReadyState.OPEN_STATE) {
+        const serializedParams = event
+          ? createWsOperation(event, params)
+          : params
 
-      this.client.send(JSON.stringify(serializedParams))
-    }
+        this.client.send(JSON.stringify(serializedParams))
+      }
+    })
   }
 
   public get kind() {

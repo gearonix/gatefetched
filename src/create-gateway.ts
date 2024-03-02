@@ -28,10 +28,6 @@ export interface BaseCreateGatewayParams<
   response?: {
     mapData?: DynamicallySourcedField<any, any, DataSource>
   }
-
-  request?: {
-    mapBody?: DynamicallySourcedField<any, any, BodySource>
-  }
 }
 
 interface WebsocketGateway<

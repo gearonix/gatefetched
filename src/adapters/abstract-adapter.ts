@@ -1,4 +1,4 @@
-import type { AnyFn, AnyRecord, WebsocketInstance } from '@/shared/types'
+import type { AnyFn, WebsocketInstance } from '@/shared/types'
 
 export interface AdapterPublishOptions {
   withAck?: boolean
@@ -47,7 +47,7 @@ export abstract class AbstractWsAdapter<
 
   public abstract publish(
     event: string,
-    params: AnyRecord,
+    params: unknown,
     options?: AdapterPublishOptions
   ): void
 }

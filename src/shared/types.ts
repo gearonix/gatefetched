@@ -14,6 +14,12 @@ export const isFunction = (target: unknown): target is AnyFn =>
 export const isObject = (target: unknown): target is AnyRecord =>
   typeof target === 'object' && target !== null && !Array.isArray(target)
 
+export const isUndefined = (value: unknown): value is undefined =>
+  value === undefined
+
+export const isString = (value: unknown): value is string =>
+  typeof value === 'string'
+
 export type WebsocketEventsConfig<
   Event extends WebsocketEvent = WebsocketEvent
 > = Record<Event, string> | Event[] | readonly Event[]
@@ -21,7 +27,6 @@ export type WebsocketEventsConfig<
 export type WebsocketEvent = string
 
 export type WebsocketInstance = SocketIoInstance | WebSocket
-
 
 export type InterceptType = 'incoming' | 'outgoing'
 

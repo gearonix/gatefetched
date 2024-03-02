@@ -19,7 +19,8 @@ import {
   sample,
   split
 } from 'effector'
-import type { AnyFn, ListenerStatus, WebsocketEvent } from '@/shared/types'
+import type { AnyFn, WebsocketEvent } from '@/shared/types'
+import { isObject } from '@/shared/types'
 import type {
   AdapterSubscribeOptions,
   AdapterSubscribeResult
@@ -141,15 +142,27 @@ export interface CreateListener<
     }
   ): Listener<TransformedData, null, PrepareParams>
 
-  // TODO: idk why this is working lmaooo
   <Data, Event extends Events>(event: Event): Listener<Data>
+  <Data>(): Listener<Data>
 }
 
 export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
-  const createListenerImpl = ({
-    name = ANY_WEBSOCKET_EVENT,
-    ...options
-  }: BaseListenerConfig<WebsocketEvent, unknown>): Listener<unknown> => {
+  type CreateListenerOptions =
+    | BaseListenerConfig<WebsocketEvent, unknown>
+    | WebsocketEvent
+    | undefined
+
+  const normalizeCreateListenerParams = (
+    options: CreateListenerOptions
+  ): BaseListenerConfig<WebsocketEvent, unknown> =>
+    isObject(options) ? options : { name: options ?? ANY_WEBSOCKET_EVENT }
+
+  const createListenerImpl = (
+    rawOptions: CreateListenerOptions
+  ): Listener<unknown> => {
+    const { name = ANY_WEBSOCKET_EVENT, ...options } =
+      normalizeCreateListenerParams(rawOptions)
+
     const { adapter, ...config } = gatewayConfig
 
     const normalizedName = serializeEventName(name, config.events)
