@@ -12,8 +12,6 @@ export function Entrypoint() {
         <h1 className="title">Effector + Socket.io example</h1>
         <Parent />
       </div>
-
-      <a href="https://github.com/gearonix/farsocket" target="_blank"></a>
     </>
   )
 }

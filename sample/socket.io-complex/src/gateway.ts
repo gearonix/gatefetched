@@ -1,5 +1,5 @@
-import { createGateway } from '@lib'
 import { createLogger } from '@neodx/log'
+import { createGateway } from 'farsocket'
 import { io } from 'socket.io-client'
 import { protocolEvents } from './parent/events.ts'
 
@@ -24,3 +24,5 @@ export const gateway = createGateway({
     mapData: ({ payload }) => payload
   }
 })
+
+gateway.adapter.bindConnect(console.info)

@@ -30,8 +30,9 @@
     "pretty": true,
     "baseUrl": ".",
     "paths": {
-      "@lib": ["src/index.ts"],
+      "farsocket": ["src/index.ts"],
       "@/*": ["src/*"]
-    }
+    },
+    "jsx": "react"
   }
 }

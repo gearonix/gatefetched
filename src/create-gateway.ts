@@ -99,7 +99,7 @@ export function createGateway<
 
   const adapter = createAdapter({ instance })
 
-  const mixedParams = {
+  const preparedParams = {
     ...options,
     adapter,
     gate: {
@@ -107,8 +107,8 @@ export function createGateway<
     }
   } satisfies PreparedGatewayParams
 
-  const listener = createListener(mixedParams)
-  const dispatcher = createDispatcher(mixedParams)
+  const listener = createListener(preparedParams)
+  const dispatcher = createDispatcher(preparedParams)
 
   return {
     instance,

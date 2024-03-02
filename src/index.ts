@@ -1,8 +1,7 @@
-// public api
 export { attachGate } from './attach-gate'
 export { createGateway } from './create-gateway'
 
-// interfaces
+// types
 export type {
   BaseCreateGatewayParams,
   CreateGatewayParams,
