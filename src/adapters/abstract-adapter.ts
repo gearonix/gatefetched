@@ -15,7 +15,7 @@ export interface AdapterSubscribeResult<Result> {
   overrideEvent?: string
 }
 
-export abstract class AbstractWsAdapter<
+export abstract class AbstractProtocolAdapter<
   Client extends ProtocolInstance = ProtocolInstance,
   Options = unknown
 > {

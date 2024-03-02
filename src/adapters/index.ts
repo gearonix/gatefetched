@@ -1,6 +1,6 @@
 import type { ProtocolInstance } from '@/shared/types'
 import { unsupportedInstanceError } from '../errors/create-error'
-import type { AbstractWsAdapter } from './abstract-adapter'
+import type { AbstractProtocolAdapter } from './abstract-adapter'
 import { adapterMatchers } from './matchers'
 
 export interface CreateAdapterParams {
@@ -9,7 +9,7 @@ export interface CreateAdapterParams {
 
 export function createAdapter({
   instance
-}: CreateAdapterParams): AbstractWsAdapter {
+}: CreateAdapterParams): AbstractProtocolAdapter {
   const matched = adapterMatchers.find((matcher) => matcher.condition(instance))
 
   if (matched) {

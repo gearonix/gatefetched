@@ -13,7 +13,7 @@ import type {
 } from '@/shared/types'
 import { isObject } from '@/shared/utils'
 import { createAdapter } from './adapters'
-import { AbstractWsAdapter } from './adapters/abstract-adapter'
+import { AbstractProtocolAdapter } from './adapters/abstract-adapter'
 import type { CreateListener } from './listener'
 import { createListener } from './listener'
 
@@ -38,7 +38,7 @@ export type WebsocketGateway<
   Events extends ProtocolEvent = ProtocolEvent
 > = {
   instance: Instance
-  adapter: AbstractWsAdapter<Instance>
+  adapter: AbstractProtocolAdapter<Instance>
   listener: CreateListener<Events>
   bindGate: (gate: AnyEffectorGate) => void
   __: {
@@ -123,7 +123,7 @@ export function createGateway<
 }
 
 export type PreparedGatewayParams = Omit<BaseCreateGatewayParams, 'from'> & {
-  adapter: AbstractWsAdapter
+  adapter: AbstractProtocolAdapter
   events?: ProtocolEventConfig<any>
   gate: {
     ready: Store<boolean>

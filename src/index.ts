@@ -1,10 +1,4 @@
 export type {
-  BaseCreateGatewayParams,
-  CreateGatewayParams,
-  WebsocketGateway
-} from '@/create-gateway'
-export { createGateway } from '@/create-gateway'
-export type {
   BaseDispatcherConfig,
   CreateDispatcher,
   Dispatcher,
@@ -32,3 +26,9 @@ export type {
 export * from './shared/consts'
 export * from './shared/types'
 export * from './shared/utils'
+export type {
+  BaseCreateGatewayParams,
+  CreateGatewayParams,
+  WebsocketGateway
+} from '@/create-gateway'
+export { createGateway } from '@/create-gateway'

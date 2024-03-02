@@ -9,7 +9,7 @@ import type {
   AdapterSubscribeOptions,
   AdapterSubscribeResult
 } from './abstract-adapter'
-import { AbstractWsAdapter } from './abstract-adapter'
+import { AbstractProtocolAdapter } from './abstract-adapter'
 import { AdapterMeta } from './matchers'
 
 export const ReadyState = {
@@ -45,7 +45,7 @@ export const createWsOperation = <Result>(
   data
 })
 
-export class WebsocketAdapter extends AbstractWsAdapter<
+export class WebsocketAdapter extends AbstractProtocolAdapter<
   WebSocket,
   WebsocketProtocols
 > {

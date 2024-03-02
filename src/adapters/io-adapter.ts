@@ -13,12 +13,12 @@ import type {
   AdapterSubscribeOptions,
   AdapterSubscribeResult
 } from './abstract-adapter'
-import { AbstractWsAdapter } from './abstract-adapter'
+import { AbstractProtocolAdapter } from './abstract-adapter'
 import { AdapterMeta } from './matchers'
 
 export type IoOptions = ManagerOptions & SocketOptions
 
-export class IoAdapter extends AbstractWsAdapter<IoClient, IoOptions> {
+export class IoAdapter extends AbstractProtocolAdapter<IoClient, IoOptions> {
   constructor(client: IoClient) {
     super(client)
 

@@ -8,10 +8,10 @@ import type {
   AdapterSubscribeOptions,
   AdapterSubscribeResult
 } from './abstract-adapter'
-import { AbstractWsAdapter } from './abstract-adapter'
+import { AbstractProtocolAdapter } from './abstract-adapter'
 import { AdapterMeta } from './matchers'
 
-export class SseAdapter extends AbstractWsAdapter<
+export class SseAdapter extends AbstractProtocolAdapter<
   EventSource,
   EventSourceInit
 > {

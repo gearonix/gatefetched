@@ -2,12 +2,12 @@ import { Socket as IoInstance } from 'socket.io-client'
 import { SseAdapter } from '@/adapters/sse-adapter'
 import type { ProtocolInstance } from '@/shared/types'
 import { isObject } from '@/shared/utils'
-import { AbstractWsAdapter } from './abstract-adapter'
+import { AbstractProtocolAdapter } from './abstract-adapter'
 import { IoAdapter } from './io-adapter'
 import { WebsocketAdapter } from './ws-adapter'
 
 interface AdapterMatcher {
-  adapter: new (...args: any[]) => AbstractWsAdapter
+  adapter: new (...args: any[]) => AbstractProtocolAdapter
   condition: (
     instance: unknown | ProtocolInstance
   ) => instance is ProtocolInstance
