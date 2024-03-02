@@ -16,8 +16,7 @@ import { createListener } from './listener'
 export interface BaseCreateGatewayParams<
   Instance extends WebsocketInstance = WebsocketInstance,
   InterceptSource = void,
-  DataSource = void,
-  BodySource = void
+  DataSource = void
 > {
   from: Instance
   intercept?: DynamicallySourcedField<

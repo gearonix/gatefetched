@@ -2,7 +2,6 @@ import type {
   Contract,
   DynamicallySourcedField,
   FarfetchedError,
-  SourcedField,
   Validator
 } from '@farfetched/core'
 import {
@@ -19,7 +18,7 @@ import {
   sample,
   split
 } from 'effector'
-import type { AnyFn, WebsocketEvent } from '@/shared/types'
+import type { WebsocketEvent } from '@/shared/types'
 import { isObject } from '@/shared/types'
 import type {
   AdapterSubscribeOptions,
@@ -43,7 +42,6 @@ export type ListenerStatus = 'initial' | 'opened' | 'closed'
 interface BaseListenerConfig<
   Events extends WebsocketEvent,
   Data,
-  PrepareParams = void,
   ValidationSource = void,
   TransformedData = void,
   DataSource = void,
@@ -51,8 +49,6 @@ interface BaseListenerConfig<
 > {
   name?: Events
   initialData?: Partial<Data>
-  dispatch?: StaticOrReactive<PrepareParams>
-
   immediate?: StaticOrReactive<boolean>
   enabled?: StaticOrReactive<boolean>
   response?: {
@@ -74,7 +70,6 @@ interface Listener<Data, InitialData = null, Params = unknown> {
 
   listen: EventCallable<void>
   close: EventCallable<void>
-  dispatch: EventCallable<Params>
 
   done: Event<{ result: Data; params?: Params }>
   finished: {
@@ -94,7 +89,6 @@ interface Listener<Data, InitialData = null, Params = unknown> {
     opened: Store<boolean>
     closed: Store<boolean>
     idle: Store<boolean>
-    dispatch: EventCallable<Params>
     done: Event<{ result: Data; params?: Params }>
     failed: Event<{
       error: FarfetchedError<any>
@@ -107,14 +101,13 @@ export interface CreateListener<
   Events extends WebsocketEvent = WebsocketEvent
 > {
   <Data, ValidationSource = void>(
-    config: BaseListenerConfig<Events, Data, void, ValidationSource>
+    config: BaseListenerConfig<Events, Data, ValidationSource>
   ): Listener<Data>
 
   <Data, TransformedData, DataSource = void, ValidationSource = void>(
     config: BaseListenerConfig<
       Events,
       Data,
-      void,
       ValidationSource,
       TransformedData,
       DataSource
@@ -122,26 +115,6 @@ export interface CreateListener<
       mapData: DynamicallySourcedField<Data, TransformedData, DataSource>
     }
   ): Listener<TransformedData>
-
-  <
-    Data,
-    TransformedData,
-    PrepareParams,
-    DataSource = void,
-    ValidationSource = void
-  >(
-    config: BaseListenerConfig<
-      Events,
-      Data,
-      PrepareParams,
-      ValidationSource,
-      TransformedData,
-      DataSource
-    > & {
-      dispatch: SourcedField<any, PrepareParams, any>
-    }
-  ): Listener<TransformedData, null, PrepareParams>
-
   <Data, Event extends Events>(event: Event): Listener<Data>
   <Data>(): Listener<Data>
 }
@@ -171,9 +144,6 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
     const close = createEvent()
 
     const started = createEvent()
-
-    // TODO implement dispatch
-    const dispatch = createEvent<unknown>()
 
     const failed = createEvent<{
       error: FarfetchedError<any>
@@ -218,19 +188,6 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
         adapter.unsubscribe(normalizedName)
       }
     })
-
-    if (options.dispatch) {
-      // TODO: should understand normalizeSourced better
-      // should execute only on listenerStarted clock
-      // https://github.com/igorkamyshev/farfetched/tree/master/packages/core/src/libs/patronus
-      const $normalizedPrepare = normalizeSourced({
-        field: options.dispatch
-      }) as Store<AnyFn>
-
-      // @ts-expect-error not implemented yet
-      const $prepare = $normalizedPrepare.map((normalized) => normalized())
-    }
-
     sample({
       clock: listen,
       filter: and($enabled, not($opened)),
@@ -393,7 +350,6 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
       opened: $opened,
       listen,
       failed,
-      dispatch,
       done: finished.done
     }
 
@@ -415,7 +371,6 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
       listen,
       done: finished.done,
       $data: $latestData,
-      dispatch,
       '@@unitShape': unitShapeProtocol
     }
   }
