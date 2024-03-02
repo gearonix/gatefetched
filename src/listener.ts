@@ -18,29 +18,30 @@ import {
   sample,
   split
 } from 'effector'
-import type { WebsocketEvent } from '@/shared/types'
-import { isObject } from '@/shared/types'
+import type { PreparedGatewayParams } from '@/create-gateway'
+import type { StaticOrReactive } from '@/libs/farfetched'
+import {
+  checkValidationResult,
+  createContractApplier,
+  normalizeStaticOrReactive,
+  unwrapValidationResult,
+  validValidator
+} from '@/libs/farfetched'
+import { ignoreSerialization } from '@/shared/lib/ignore-serialization'
+import { serializeEventName } from '@/shared/lib/serialize-event-name'
+import type { ProtocolEvent } from '@/shared/types'
 import type {
   AdapterSubscribeOptions,
   AdapterSubscribeResult
 } from './adapters/abstract-adapter'
-import type { PreparedGatewayParams } from './create-gateway'
-import { createContractApplier } from './libs/farfetched/apply-contract'
-import type { StaticOrReactive } from './libs/farfetched/static-or-reactive'
-import { normalizeStaticOrReactive } from './libs/farfetched/static-or-reactive'
-import {
-  checkValidationResult,
-  unwrapValidationResult,
-  validValidator
-} from './libs/farfetched/validation'
 import { and, equals, not } from './libs/patronum'
 import { ANY_WEBSOCKET_EVENT } from './shared/consts'
-import { identity, ignoreSerialization, serializeEventName } from './shared/lib'
+import { identity, isObject } from './shared/utils'
 
 export type ListenerStatus = 'initial' | 'opened' | 'closed'
 
-interface BaseListenerConfig<
-  Events extends WebsocketEvent,
+export interface BaseListenerConfig<
+  Events extends ProtocolEvent,
   Data,
   ValidationSource = void,
   TransformedData = void,
@@ -59,15 +60,13 @@ interface BaseListenerConfig<
   adapter?: AdapterSubscribeOptions
 }
 
-// TODO split this type
-interface Listener<Data, InitialData = null, Params = unknown> {
+export interface Listener<Data, InitialData = null, Params = unknown> {
   $enabled: Store<boolean>
   $status: Store<ListenerStatus>
   $opened: Store<boolean>
   $idle: Store<boolean>
   $closed: Store<boolean>
   $data: Store<Data | InitialData>
-
   listen: EventCallable<void>
   close: EventCallable<void>
 
@@ -97,9 +96,7 @@ interface Listener<Data, InitialData = null, Params = unknown> {
   }
 }
 
-export interface CreateListener<
-  Events extends WebsocketEvent = WebsocketEvent
-> {
+export interface CreateListener<Events extends ProtocolEvent = ProtocolEvent> {
   <Data, ValidationSource = void>(
     config: BaseListenerConfig<Events, Data, ValidationSource>
   ): Listener<Data>
@@ -121,13 +118,13 @@ export interface CreateListener<
 
 export function createListener(gatewayConfig: PreparedGatewayParams) {
   type CreateListenerOptions =
-    | BaseListenerConfig<WebsocketEvent, unknown>
-    | WebsocketEvent
+    | BaseListenerConfig<ProtocolEvent, unknown>
+    | ProtocolEvent
     | undefined
 
   const normalizeCreateListenerParams = (
     options: CreateListenerOptions
-  ): BaseListenerConfig<WebsocketEvent, unknown> =>
+  ): BaseListenerConfig<ProtocolEvent, unknown> =>
     isObject(options) ? options : { name: options ?? ANY_WEBSOCKET_EVENT }
 
   const createListenerImpl = (
@@ -241,7 +238,6 @@ export function createListener(gatewayConfig: PreparedGatewayParams) {
         validDataReceived: ({ validation }) => checkValidationResult(validation)
       }
     )
-    // TODO file refactoring
 
     const mapGlobalData = sample({
       clock: validDataReceived,
@@ -376,7 +372,6 @@ export function createListener(gatewayConfig: PreparedGatewayParams) {
       '@@unitShape': unitShapeProtocol
     }
   }
-  // TODO: refactor everything here
 
   return createListenerImpl as CreateListener
 }

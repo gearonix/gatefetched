@@ -7,18 +7,18 @@ import type {
   AnyEffectorGate,
   InterceptResponse,
   OneSidedProtocols,
-  WebsocketEvent,
-  WebsocketEventsConfig,
-  WebsocketInstance
+  ProtocolEvent,
+  ProtocolEventConfig,
+  ProtocolInstance
 } from '@/shared/types'
-import { isObject } from '@/shared/types'
+import { isObject } from '@/shared/utils'
 import { createAdapter } from './adapters'
 import { AbstractWsAdapter } from './adapters/abstract-adapter'
 import type { CreateListener } from './listener'
 import { createListener } from './listener'
 
 export interface BaseCreateGatewayParams<
-  Instance extends WebsocketInstance = WebsocketInstance,
+  Instance extends ProtocolInstance = ProtocolInstance,
   InterceptSource = void,
   DataSource = void
 > {
@@ -34,8 +34,8 @@ export interface BaseCreateGatewayParams<
 }
 
 export type WebsocketGateway<
-  Instance extends WebsocketInstance,
-  Events extends WebsocketEvent = WebsocketEvent
+  Instance extends ProtocolInstance,
+  Events extends ProtocolEvent = ProtocolEvent
 > = {
   instance: Instance
   adapter: AbstractWsAdapter<Instance>
@@ -46,6 +46,7 @@ export type WebsocketGateway<
       provide: EventCallable<AnyEffectorGate>
       clear: EventCallable<void>
     }
+    kind: symbol
   }
 } & (Instance extends OneSidedProtocols
   ? Record<string, never>
@@ -53,43 +54,43 @@ export type WebsocketGateway<
       dispatcher: CreateDispatcher<Events>
     })
 
-// TODO: comment everything
-
 type CreateGatewayParamsWithEvents<
-  Instance extends WebsocketInstance,
-  Events extends WebsocketEvent
+  Instance extends ProtocolInstance,
+  Events extends ProtocolEvent
 > = BaseCreateGatewayParams<Instance> & {
-  events: WebsocketEventsConfig<Events>
+  events: ProtocolEventConfig<Events>
 }
 
 export type CreateGatewayParams<
-  Instance extends WebsocketInstance,
-  Events extends WebsocketEvent = WebsocketEvent
+  Instance extends ProtocolInstance,
+  Events extends ProtocolEvent = ProtocolEvent
 > =
   | BaseCreateGatewayParams<Instance>
   | CreateGatewayParamsWithEvents<Instance, Events>
   | Instance
 
-export function createGateway<Instance extends WebsocketInstance>(
+export const GatewaySymbol = Symbol('Gateway')
+
+export function createGateway<Instance extends ProtocolInstance>(
   options: BaseCreateGatewayParams<Instance>
 ): WebsocketGateway<Instance>
 
 export function createGateway<
-  Instance extends WebsocketInstance,
-  Events extends WebsocketEvent
+  Instance extends ProtocolInstance,
+  Events extends ProtocolEvent
 >(
   options: BaseCreateGatewayParams<Instance> & {
-    events: WebsocketEventsConfig<Events>
+    events: ProtocolEventConfig<Events>
   }
 ): WebsocketGateway<Instance, Events>
 
-export function createGateway<Instance extends WebsocketInstance>(
+export function createGateway<Instance extends ProtocolInstance>(
   instance: Instance
 ): WebsocketGateway<Instance>
 
 export function createGateway<
-  Instance extends WebsocketInstance,
-  Events extends WebsocketEvent
+  Instance extends ProtocolInstance,
+  Events extends ProtocolEvent
 >(params: CreateGatewayParams<Instance, Events>): WebsocketGateway<any> {
   const { instance, options } = normalizeCreateGatewayParams(params)
 
@@ -115,14 +116,15 @@ export function createGateway<
     dispatcher,
     bindGate: gateManager.provide,
     __: {
-      gate: gateManager
+      gate: gateManager,
+      kind: GatewaySymbol
     }
   }
 }
 
 export type PreparedGatewayParams = Omit<BaseCreateGatewayParams, 'from'> & {
   adapter: AbstractWsAdapter
-  events?: WebsocketEventsConfig<any>
+  events?: ProtocolEventConfig<any>
   gate: {
     ready: Store<boolean>
   }
@@ -134,8 +136,8 @@ interface CreateGatewayParamsNormalized<Instance> {
 }
 
 export function normalizeCreateGatewayParams<
-  Instance extends WebsocketInstance,
-  Events extends WebsocketEvent
+  Instance extends ProtocolInstance,
+  Events extends ProtocolEvent
 >(
   params: CreateGatewayParams<Instance, Events>
 ): CreateGatewayParamsNormalized<Instance> {

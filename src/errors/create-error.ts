@@ -32,7 +32,7 @@ export function invalidOperationEventResponseError(): InvalidOperationEventRespo
 }
 
 export function websocketConnectionFailureError(
-  error: Event
+  error: unknown
 ): WebsocketConnectionFailureError {
   return {
     errorType: WEBSOCKET_CONNECTION_FAILURE,

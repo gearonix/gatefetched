@@ -12,27 +12,27 @@ export interface GateManager {
 }
 
 export function createGateManager(): GateManager {
-  // TODO: rewrite on reshape
-
   const $scopedGate = createStore<AnyEffectorGate | null>(null, {
     serialize: 'ignore',
     name: 'farsocket.$scopedGate',
     sid: 'farsocket.$scopedGate'
   })
 
-  const gateManager = createApi($scopedGate, {
+  const manager = createApi($scopedGate, {
     provide: (_, gate: AnyEffectorGate) => gate,
     clear: () => null
   })
 
-  const $gateMissing = empty($scopedGate)
-  const $gateExists = not($gateMissing)
+  const $missing = empty($scopedGate)
+  const $exists = not($missing)
 
   const $mounted = createStore(false, {
     serialize: 'ignore',
     name: 'farsocket.$mounted',
     sid: 'farsocket.$mounted'
   })
+
+  const $existsAndMounted = and($exists, $mounted)
 
   // eslint-disable-next-line effector/no-useless-methods
   sample({
@@ -45,11 +45,10 @@ export function createGateManager(): GateManager {
       })
     }
   })
-
-  const $scopeReady = or($gateMissing, and($gateExists, $mounted))
+  const $scopeReady = or($missing, $existsAndMounted)
 
   return {
     $scopeReady,
-    manager: gateManager
+    manager
   }
 }

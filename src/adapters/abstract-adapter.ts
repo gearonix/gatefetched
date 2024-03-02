@@ -1,4 +1,4 @@
-import type { AnyFn, WebsocketInstance } from '@/shared/types'
+import type { AnyFn, ProtocolInstance } from '@/shared/types'
 
 export interface AdapterPublishOptions {
   withAck?: boolean
@@ -16,7 +16,7 @@ export interface AdapterSubscribeResult<Result> {
 }
 
 export abstract class AbstractWsAdapter<
-  Client extends WebsocketInstance = WebsocketInstance,
+  Client extends ProtocolInstance = ProtocolInstance,
   Options = unknown
 > {
   protected readonly client: Client
@@ -24,6 +24,8 @@ export abstract class AbstractWsAdapter<
   constructor(client: Client) {
     this.client = client
   }
+
+  protected abstract bindErrorHandlers(): void
 
   public abstract bindConnect<Fn extends AnyFn>(cb: Fn): void
 

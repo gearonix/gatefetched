@@ -1,5 +1,8 @@
-import { unsupportedAdapterMethodError } from '@/errors/create-error'
-import { safeParseJson } from '@/shared/lib'
+import { safeParseJson } from '@/adapters/shared'
+import {
+  unsupportedAdapterMethodError,
+  websocketConnectionFailureError
+} from '@/errors/create-error'
 import type { AnyFn } from '@/shared/types'
 import type {
   AdapterSubscribeOptions,
@@ -8,13 +11,24 @@ import type {
 import { AbstractWsAdapter } from './abstract-adapter'
 import { AdapterMeta } from './matchers'
 
-// TODO: rename ws
 export class SseAdapter extends AbstractWsAdapter<
   EventSource,
   EventSourceInit
 > {
   private readonly attendedHandlers: Set<(evt: MessageEvent) => void> =
     new Set()
+
+  constructor(client: EventSource) {
+    super(client)
+
+    this.bindErrorHandlers()
+  }
+
+  protected bindErrorHandlers() {
+    this.client.addEventListener('error', (error: Event) => {
+      throw websocketConnectionFailureError(error)
+    })
+  }
 
   public bindConnect<Fn extends AnyFn>(cb: Fn) {
     this.client.addEventListener('open', cb)

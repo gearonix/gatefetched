@@ -18,7 +18,7 @@ export const WEBSOCKET_CONNECTION_FAILURE = 'WEBSOCKET_CONNECTION_FAILURE'
 
 export interface WebsocketConnectionFailureError
   extends FarfetchedError<typeof WEBSOCKET_CONNECTION_FAILURE> {
-  error: Event
+  error: unknown
 }
 
 export const UNSUPPORTED_ADAPTER_METHOD = 'UNSUPPORTED_ADAPTER_METHOD'

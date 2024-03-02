@@ -4,8 +4,9 @@ import type {
   SocketOptions
 } from 'socket.io-client'
 import { io as createIoClient } from 'socket.io-client'
+import { isAnyWebSocketEvent } from '@/adapters/shared'
+import { websocketConnectionFailureError } from '@/errors/create-error'
 import { CONNECTION_EVENT, DISCONNECT_EVENT } from '@/shared/consts'
-import { isAnyWebSocketEvent } from '@/shared/lib'
 import type { AnyFn } from '@/shared/types'
 import type {
   AdapterPublishOptions,
@@ -18,6 +19,20 @@ import { AdapterMeta } from './matchers'
 export type IoOptions = ManagerOptions & SocketOptions
 
 export class IoAdapter extends AbstractWsAdapter<IoClient, IoOptions> {
+  constructor(client: IoClient) {
+    super(client)
+
+    this.bindErrorHandlers()
+  }
+
+  protected bindErrorHandlers() {
+    this.client.on('connect_error', (error) => {
+      console.error(error)
+
+      throw websocketConnectionFailureError(error)
+    })
+  }
+
   public bindConnect<Fn extends AnyFn>(cb: Fn) {
     this.client.on(CONNECTION_EVENT, cb)
   }

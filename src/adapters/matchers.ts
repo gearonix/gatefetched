@@ -1,7 +1,7 @@
 import { Socket as IoInstance } from 'socket.io-client'
 import { SseAdapter } from '@/adapters/sse-adapter'
-import type { WebsocketInstance } from '@/shared/types'
-import { isObject } from '@/shared/types'
+import type { ProtocolInstance } from '@/shared/types'
+import { isObject } from '@/shared/utils'
 import { AbstractWsAdapter } from './abstract-adapter'
 import { IoAdapter } from './io-adapter'
 import { WebsocketAdapter } from './ws-adapter'
@@ -9,8 +9,8 @@ import { WebsocketAdapter } from './ws-adapter'
 interface AdapterMatcher {
   adapter: new (...args: any[]) => AbstractWsAdapter
   condition: (
-    instance: unknown | WebsocketInstance
-  ) => instance is WebsocketInstance
+    instance: unknown | ProtocolInstance
+  ) => instance is ProtocolInstance
 }
 
 export const adapterMatchers = [
@@ -42,7 +42,7 @@ function isSocketIoInstance(
 }
 
 function isBaseWebsocketInstance(
-  instance: unknown | WebsocketInstance
+  instance: unknown | ProtocolInstance
 ): instance is WebSocket {
   return isObject(instance) && instance instanceof WebSocket
 }

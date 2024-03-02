@@ -1,10 +1,10 @@
-import type { WebsocketInstance } from '@/shared/types'
+import type { ProtocolInstance } from '@/shared/types'
 import { unsupportedInstanceError } from '../errors/create-error'
 import type { AbstractWsAdapter } from './abstract-adapter'
 import { adapterMatchers } from './matchers'
 
 export interface CreateAdapterParams {
-  instance: WebsocketInstance
+  instance: ProtocolInstance
 }
 
 export function createAdapter({

@@ -1,6 +1,6 @@
-import { isAnyWebSocketEvent, safeParseJson } from '@/shared/lib'
-import type { Nil, WebsocketEvent } from '@/shared/types'
-import { isObject } from '@/shared/types'
+import { isAnyWebSocketEvent, safeParseJson } from '@/adapters/shared'
+import type { Nil, ProtocolEvent } from '@/shared/types'
+import { isObject } from '@/shared/utils'
 import {
   invalidOperationEventResponseError,
   websocketConnectionFailureError
@@ -49,15 +49,15 @@ export class WebsocketAdapter extends AbstractWsAdapter<
   WebSocket,
   WebsocketProtocols
 > {
-  private readonly attendedEvents: Set<WebsocketEvent> = new Set()
+  private readonly attendedEvents: Set<ProtocolEvent> = new Set()
 
   constructor(client: WebSocket) {
     super(client)
 
-    this.listenDefaultMessageHandlers()
+    this.bindErrorHandlers()
   }
 
-  private listenDefaultMessageHandlers() {
+  protected bindErrorHandlers() {
     this.client.addEventListener('error', (error: Event) => {
       throw websocketConnectionFailureError(error)
     })
@@ -76,7 +76,7 @@ export class WebsocketAdapter extends AbstractWsAdapter<
   }
 
   public subscribe(
-    event: WebsocketEvent,
+    event: ProtocolEvent,
     trigger: (result: AdapterSubscribeResult<unknown>) => void,
     options?: AdapterSubscribeOptions
   ) {

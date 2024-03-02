@@ -9,27 +9,16 @@ export type AnyRecord = Record<AnyKey, unknown>
 
 export type AnyFn = (...args: any[]) => unknown
 
-export const isFunction = (target: unknown): target is AnyFn =>
-  typeof target === 'function'
+export type ProtocolEventConfig<Event extends ProtocolEvent = ProtocolEvent> =
+  | Record<Event, string>
+  | Event[]
+  | readonly Event[]
 
-export const isObject = (target: unknown): target is AnyRecord =>
-  typeof target === 'object' && target !== null && !Array.isArray(target)
+export type ProtocolEvent = string
 
-export const isUndefined = (value: unknown): value is undefined =>
-  value === undefined
+export type ProtocolInstance = SocketIoInstance | WebSocket | EventSource
 
-export const isString = (value: unknown): value is string =>
-  typeof value === 'string'
-
-export type WebsocketEventsConfig<
-  Event extends WebsocketEvent = WebsocketEvent
-> = Record<Event, string> | Event[] | readonly Event[]
-
-export type WebsocketEvent = string
-
-export type WebsocketInstance = SocketIoInstance | WebSocket | EventSource
-
-export type OneSidedProtocols = Extract<WebsocketInstance, EventSource>
+export type OneSidedProtocols = Extract<ProtocolInstance, EventSource>
 
 export type InterceptType = 'incoming' | 'outgoing'
 

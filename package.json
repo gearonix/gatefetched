@@ -54,6 +54,9 @@
   "peerDependenciesMeta": {
     "socket.io-client": {
       "optional": true
+    },
+    "@farfetched/core": {
+      "optional": true
     }
   },
   "devDependencies": {

@@ -13,19 +13,16 @@ import type { PreparedGatewayParams } from '@/create-gateway'
 import type { StaticOrReactive } from '@/libs/farfetched'
 import { normalizeStaticOrReactive } from '@/libs/farfetched'
 import { and, equals, not } from '@/libs/patronum'
-import {
-  createArrayStore,
-  identity,
-  ignoreSerialization,
-  serializeEventName
-} from '@/shared/lib'
-import type { WebsocketEvent } from '@/shared/types'
-import { isString } from '@/shared/types'
+import { createArrayStore } from '@/shared/lib/create-array-store'
+import { ignoreSerialization } from '@/shared/lib/ignore-serialization'
+import { serializeEventName } from '@/shared/lib/serialize-event-name'
+import type { ProtocolEvent } from '@/shared/types'
+import { identity, isString } from '@/shared/utils'
 
 export type DispatcherStatus = 'initial' | 'sent'
 
-interface BaseDispatcherConfig<
-  Events extends WebsocketEvent,
+export interface BaseDispatcherConfig<
+  Events extends ProtocolEvent,
   Params,
   BodySource = void,
   MappedBody = void
@@ -40,7 +37,7 @@ interface BaseDispatcherConfig<
   }
 }
 
-interface Dispatcher<Params> {
+export interface Dispatcher<Params> {
   $enabled: Store<boolean>
   $status: Store<DispatcherStatus>
   $sent: Store<boolean>
@@ -65,7 +62,7 @@ interface Dispatcher<Params> {
 }
 
 export interface CreateDispatcher<
-  Events extends WebsocketEvent = WebsocketEvent
+  Events extends ProtocolEvent = ProtocolEvent
 > {
   <Params, BodySource = void>(
     config: BaseDispatcherConfig<Events, Params, BodySource>
@@ -76,12 +73,12 @@ export interface CreateDispatcher<
 
 export function createDispatcher(gatewayConfig: PreparedGatewayParams) {
   type CreateDispatcherOptions =
-    | BaseDispatcherConfig<WebsocketEvent, unknown, unknown>
-    | WebsocketEvent
+    | BaseDispatcherConfig<ProtocolEvent, unknown, unknown>
+    | ProtocolEvent
 
   const normalizeCreateDispatcherParams = (
     options: CreateDispatcherOptions
-  ): BaseDispatcherConfig<WebsocketEvent, unknown, unknown> =>
+  ): BaseDispatcherConfig<ProtocolEvent, unknown, unknown> =>
     isString(options) ? { name: options } : options
 
   const createDispatcherImpl = (
@@ -135,7 +132,6 @@ export function createDispatcher(gatewayConfig: PreparedGatewayParams) {
       })
     )
 
-    // TODO: refactor
     const dispatchAllPendingCallsFx = attach({
       source: $pendingQueue.value,
       effect: createEffect<unknown[], void>((queue) => {
