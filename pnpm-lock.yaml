@@ -119,7 +119,7 @@ importers:
         specifier: ^1.4.1
         version: 1.4.1(typescript@5.3.3)(vite@5.1.4)
 
-  sample/socket.io-react:
+  sample/socket.io-complex:
     dependencies:
       '@farfetched/core':
         specifier: ^0.11.4
@@ -198,7 +198,7 @@ importers:
         specifier: ^4.3.1
         version: 4.3.1(typescript@5.3.3)(vite@4.5.2)
 
-  sample/sse:
+  sample/sse-simple:
     dependencies:
       '@farfetched/core':
         specifier: ^0.11.4

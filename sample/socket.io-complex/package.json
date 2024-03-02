@@ -1,7 +1,7 @@
 {
   "name": "socket.io-react",
   "scripts": {
-    "dev": "tsx watch src/server.ts & vite --port 3000"
+    "start": "tsx watch src/server.ts & vite --port 3000"
   },
   "dependencies": {
     "@farfetched/core": "^0.11.4",

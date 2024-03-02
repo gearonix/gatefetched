@@ -25,7 +25,6 @@ export type {
   UnsupportedWebsocketInstanceError,
   WebsocketConnectionFailureError
 } from './errors/types'
-export { createContractApplier, declareParams } from './libs/farfetched'
 export type {
   BaseListenerConfig,
   CreateListener,
