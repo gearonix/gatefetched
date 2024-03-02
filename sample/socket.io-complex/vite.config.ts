@@ -15,8 +15,5 @@ export default defineConfig({
       'https://fonts.googleapis.com/css2?family=Montserrat&family=Questrial&display=swap'
     ])
   ],
-
-  server: {
-    port: 3000
-  }
+  server: { port: 3000 }
 })

@@ -77,7 +77,7 @@ export function createGateway<Instance extends ProtocolInstance>(
 
 export function createGateway<
   Instance extends ProtocolInstance,
-  Events extends ProtocolEvent
+  const Events extends ProtocolEvent
 >(
   options: BaseCreateGatewayParams<Instance> & {
     events: ProtocolEventConfig<Events>
@@ -90,7 +90,7 @@ export function createGateway<Instance extends ProtocolInstance>(
 
 export function createGateway<
   Instance extends ProtocolInstance,
-  Events extends ProtocolEvent
+  const Events extends ProtocolEvent
 >(rawParams: CreateGatewayParams<Instance, Events>): ProtocolGateway<any> {
   const { instance, options } = normalizeCreateGatewayParams(rawParams)
 
