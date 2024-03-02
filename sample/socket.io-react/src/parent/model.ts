@@ -26,9 +26,7 @@ export const gateway = createGateway({
   },
   events: protocolEvents,
   response: {
-    mapData: ({ payload }) => {
-      return payload
-    }
+    mapData: ({ payload }) => payload
   }
 })
 
