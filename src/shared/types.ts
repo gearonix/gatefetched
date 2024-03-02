@@ -27,7 +27,9 @@ export type WebsocketEventsConfig<
 
 export type WebsocketEvent = string
 
-export type WebsocketInstance = SocketIoInstance | WebSocket
+export type WebsocketInstance = SocketIoInstance | WebSocket | EventSource
+
+export type OneSidedProtocols = Extract<WebsocketInstance, EventSource>
 
 export type InterceptType = 'incoming' | 'outgoing'
 

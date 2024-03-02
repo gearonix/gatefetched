@@ -20,3 +20,10 @@ export interface WebsocketConnectionFailureError
   extends FarfetchedError<typeof WEBSOCKET_CONNECTION_FAILURE> {
   error: Event
 }
+
+export const UNSUPPORTED_ADAPTER_METHOD = 'UNSUPPORTED_ADAPTER_METHOD'
+
+export interface UnsupportedAdapterMethodError
+  extends FarfetchedError<typeof UNSUPPORTED_ADAPTER_METHOD> {
+  method: string
+}

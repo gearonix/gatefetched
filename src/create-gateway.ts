@@ -6,6 +6,7 @@ import { createGateManager } from '@/gate-manager'
 import type {
   AnyEffectorGate,
   InterceptResponse,
+  OneSidedProtocols,
   WebsocketEvent,
   WebsocketEventsConfig,
   WebsocketInstance
@@ -32,14 +33,13 @@ export interface BaseCreateGatewayParams<
   }
 }
 
-export interface WebsocketGateway<
+export type WebsocketGateway<
   Instance extends WebsocketInstance,
   Events extends WebsocketEvent = WebsocketEvent
-> {
+> = {
   instance: Instance
   adapter: AbstractWsAdapter<Instance>
   listener: CreateListener<Events>
-  dispatcher: CreateDispatcher<Events>
   bindGate: (gate: AnyEffectorGate) => void
   __: {
     gate: {
@@ -47,7 +47,11 @@ export interface WebsocketGateway<
       clear: EventCallable<void>
     }
   }
-}
+} & (Instance extends OneSidedProtocols
+  ? Record<string, never>
+  : {
+      dispatcher: CreateDispatcher<Events>
+    })
 
 // TODO: comment everything
 
