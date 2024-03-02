@@ -1,6 +1,6 @@
 import { createStore } from 'effector'
 import { useUnit } from 'effector-react/effector-react.umd'
-import { createGateway } from 'farsocket'
+import { createGateway } from 'gatefetched'
 import type { ReactNode } from 'react'
 import { createRoot } from 'react-dom/client'
 

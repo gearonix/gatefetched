@@ -1,5 +1,5 @@
 import { createLogger } from '@neodx/log'
-import { createGateway } from 'farsocket'
+import { createGateway } from 'gatefetched'
 import { io } from 'socket.io-client'
 import { protocolEvents } from './parent/events.ts'
 

@@ -1,5 +1,5 @@
 import { zodContract } from '@farfetched/zod'
-import { attachGate } from 'farsocket'
+import { attachGate } from 'gatefetched'
 import { sample } from 'effector'
 import { createGate } from 'effector-react'
 import { gateway } from '../gateway'

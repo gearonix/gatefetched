@@ -27,7 +27,7 @@ export function createContractApplier(
 
       return data
     },
-    sid: 'farsocket.applyContractFx'
+    sid: 'gatefetched.applyContractFx'
   })
 
   return applyContractFx

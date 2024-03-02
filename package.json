@@ -1,16 +1,16 @@
 {
-  "name": "farsocket",
+  "name": "gatefetched",
   "type": "module",
   "version": "0.0.0",
   "packageManager": "pnpm@8.15.4",
   "author": "Uzhanin Egor <egor.uzhanin@gmail.com>",
   "license": "MIT",
-  "homepage": "https://github.com/gearonix/farsocket#readme",
+  "homepage": "https://github.com/gearonix/gatefetched#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gearonix/farsocket.git"
+    "url": "git+https://github.com/gearonix/gatefetched.git"
   },
-  "bugs": "https://github.com/gearonix/farsocket/issues",
+  "bugs": "https://github.com/gearonix/gatefetched/issues",
   "keywords": [],
   "sideEffects": false,
   "exports": {

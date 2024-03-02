@@ -30,9 +30,9 @@
     "pretty": true,
     "baseUrl": ".",
     "paths": {
-      "farsocket": ["src/index.ts"],
+      "gatefetched": ["src/index.ts"],
       "@/*": ["src/*"]
-    },
-    "jsx": "react"
-  }
+    }
+  },
+  "include": ["src"]
 }

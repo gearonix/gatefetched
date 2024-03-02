@@ -13,7 +13,7 @@ export function ignoreSerialization(
   scope?: string
 ): StoreConfiguration {
   const compositeName = [
-    'farsocket',
+    'gatefetched',
     scope,
     storeName.padStart(storeName.length + 1, '$')
   ]

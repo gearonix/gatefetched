@@ -2,7 +2,7 @@ import { declareParams } from '@farfetched/core'
 import { zodContract } from '@farfetched/zod'
 import { combine, createEvent, createStore, sample } from 'effector'
 import { useUnit } from 'effector-react'
-import { createGateway } from 'farsocket'
+import { createGateway } from 'gatefetched'
 import { z } from 'zod'
 
 const toggleEnabled = createEvent()
