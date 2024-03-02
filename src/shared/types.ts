@@ -1,3 +1,4 @@
+import type { EventCallable, Store } from 'effector'
 import { Socket as SocketIoInstance } from 'socket.io-client'
 
 type AnyKey = keyof any
@@ -37,4 +38,11 @@ export interface InterceptResponse<Data = unknown> {
   status: InterceptStatus
   scope: string
   data: Data
+}
+
+export interface AnyEffectorGate<Props = unknown> {
+  open: EventCallable<Props>
+  close: EventCallable<Props>
+  status: Store<boolean>
+  state: Store<Props>
 }

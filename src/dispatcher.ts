@@ -9,11 +9,16 @@ import {
   sample
 } from 'effector'
 import type { AdapterPublishOptions } from '@/adapters/abstract-adapter'
-import type { GatewayParamsWithAdapter } from '@/create-gateway'
+import type { PreparedGatewayParams } from '@/create-gateway'
 import type { StaticOrReactive } from '@/libs/farfetched'
 import { normalizeStaticOrReactive } from '@/libs/farfetched'
-import { equals, not } from '@/libs/patronum'
-import { identity, ignoreSerialization, serializeEventName } from '@/shared/lib'
+import { and, empty, equals, not, or } from '@/libs/patronum'
+import {
+  createArrayStore,
+  identity,
+  ignoreSerialization,
+  serializeEventName
+} from '@/shared/lib'
 import type { WebsocketEvent } from '@/shared/types'
 import { isString } from '@/shared/types'
 
@@ -69,7 +74,7 @@ export interface CreateDispatcher<
   (event: Events): Dispatcher<void>
 }
 
-export function createDispatcher(gatewayConfig: GatewayParamsWithAdapter) {
+export function createDispatcher(gatewayConfig: PreparedGatewayParams) {
   type CreateDispatcherOptions =
     | BaseDispatcherConfig<WebsocketEvent, unknown, unknown>
     | WebsocketEvent
@@ -103,6 +108,8 @@ export function createDispatcher(gatewayConfig: GatewayParamsWithAdapter) {
     const $idle = equals($status, 'initial')
     const $sent = equals($status, 'sent')
 
+    const $pendingQueue = createArrayStore<unknown>()
+
     const dispatch = createEvent<unknown>()
 
     const finished = {
@@ -130,12 +137,37 @@ export function createDispatcher(gatewayConfig: GatewayParamsWithAdapter) {
       })
     )
 
+    // TODO: refactor
+    const dispatchAllPendingCallsFx = attach({
+      source: $pendingQueue.value,
+      effect: createEffect<unknown[], void>((queue) => {
+        queue.forEach(dispatch)
+      })
+    })
+
     sample({ clock: resetStatus, target: $status.reinit })
 
     sample({
       clock: dispatch,
-      filter: $enabled,
+      filter: and($enabled, config.gate.ready),
       target: publishToRemoteSourceFx
+    })
+
+    sample({
+      clock: dispatch,
+      filter: not(config.gate.ready),
+      target: $pendingQueue.add
+    })
+
+    sample({
+      clock: config.gate.ready,
+      filter: Boolean,
+      target: dispatchAllPendingCallsFx
+    })
+
+    sample({
+      clock: dispatchAllPendingCallsFx.doneData,
+      target: $pendingQueue.reset
     })
 
     sample({

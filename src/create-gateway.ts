@@ -1,7 +1,10 @@
 import type { DynamicallySourcedField } from '@farfetched/core'
+import type { EventCallable, Store } from 'effector'
 import type { CreateDispatcher } from '@/dispatcher'
 import { createDispatcher } from '@/dispatcher'
+import { createGateManager } from '@/gate-manager'
 import type {
+  AnyEffectorGate,
   InterceptResponse,
   WebsocketEvent,
   WebsocketEventsConfig,
@@ -29,7 +32,7 @@ export interface BaseCreateGatewayParams<
   }
 }
 
-interface WebsocketGateway<
+export interface WebsocketGateway<
   Instance extends WebsocketInstance,
   Events extends WebsocketEvent = WebsocketEvent
 > {
@@ -37,7 +40,16 @@ interface WebsocketGateway<
   adapter: AbstractWsAdapter<Instance>
   listener: CreateListener<Events>
   dispatcher: CreateDispatcher<Events>
+  bindGate: (gate: AnyEffectorGate) => void
+  __: {
+    gate: {
+      provide: EventCallable<AnyEffectorGate>
+      clear: EventCallable<void>
+    }
+  }
 }
+
+// TODO: comment everything
 
 type CreateGatewayParamsWithEvents<
   Instance extends WebsocketInstance,
@@ -79,7 +91,15 @@ export function createGateway<
 
   const adapter = createAdapter({ instance })
 
-  const mixedParams = { ...options, adapter } satisfies GatewayParamsWithAdapter
+  const { $scopeReady, manager: gateManager } = createGateManager()
+
+  const mixedParams = {
+    ...options,
+    adapter,
+    gate: {
+      ready: $scopeReady
+    }
+  } satisfies PreparedGatewayParams
 
   const listener = createListener(mixedParams)
   const dispatcher = createDispatcher(mixedParams)
@@ -88,13 +108,20 @@ export function createGateway<
     instance,
     adapter,
     listener,
-    dispatcher
+    dispatcher,
+    bindGate: gateManager.provide,
+    __: {
+      gate: gateManager
+    }
   }
 }
 
-export type GatewayParamsWithAdapter = Omit<BaseCreateGatewayParams, 'from'> & {
+export type PreparedGatewayParams = Omit<BaseCreateGatewayParams, 'from'> & {
   adapter: AbstractWsAdapter
   events?: WebsocketEventsConfig<any>
+  gate: {
+    ready: Store<boolean>
+  }
 }
 
 interface CreateGatewayParamsNormalized<Instance> {

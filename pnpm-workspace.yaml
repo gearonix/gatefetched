@@ -1,6 +1,6 @@
 packages:
   - playground
-  - playground/react
+  - playground/*
   - docs
   - packages/*
   - examples/*

@@ -24,7 +24,7 @@ import type {
   AdapterSubscribeOptions,
   AdapterSubscribeResult
 } from './adapters/abstract-adapter'
-import type { GatewayParamsWithAdapter } from './create-gateway'
+import type { PreparedGatewayParams } from './create-gateway'
 import { createContractApplier } from './libs/farfetched/apply-contract'
 import type { StaticOrReactive } from './libs/farfetched/static-or-reactive'
 import { normalizeStaticOrReactive } from './libs/farfetched/static-or-reactive'
@@ -119,7 +119,7 @@ export interface CreateListener<
   <Data>(): Listener<Data>
 }
 
-export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
+export function createListener(gatewayConfig: PreparedGatewayParams) {
   type CreateListenerOptions =
     | BaseListenerConfig<WebsocketEvent, unknown>
     | WebsocketEvent
@@ -188,9 +188,10 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
         adapter.unsubscribe(normalizedName)
       }
     })
+
     sample({
       clock: listen,
-      filter: and($enabled, not($opened)),
+      filter: and($enabled, not($opened), config.gate.ready),
       target: listenRemoteSourceFx
     })
 
@@ -245,7 +246,6 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
       }
     )
     // TODO file refactoring
-    //  based on farfetched repository
 
     const mapGlobalData = sample({
       clock: validDataReceived,
@@ -339,6 +339,12 @@ export function createListener(gatewayConfig: GatewayParamsWithAdapter) {
           status
         })
       }
+    })
+
+    sample({
+      clock: config.gate.ready,
+      filter: Boolean,
+      target: listen
     })
 
     const unitShape = {

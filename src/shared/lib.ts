@@ -1,5 +1,5 @@
 import type { StoreWritable } from 'effector'
-import { createStore } from 'effector'
+import { createEvent, createStore, sample } from 'effector'
 import { ANY_WEBSOCKET_EVENT } from './consts'
 import type { WebsocketEvent, WebsocketEventsConfig } from './types'
 import { isObject } from './types'
@@ -49,3 +49,18 @@ export const identity = <T>(value: T) => value
 
 export const isAnyWebSocketEvent = (event: string): boolean =>
   event === ANY_WEBSOCKET_EVENT
+
+export const createArrayStore = <T>() => {
+  const add = createEvent<T>()
+  const reset = createEvent()
+
+  const $items = createStore<T[]>([]).on(add, (s, item) => [...s, item])
+
+  sample({ clock: reset, target: $items.reinit })
+
+  return {
+    value: $items,
+    add,
+    reset
+  }
+}
