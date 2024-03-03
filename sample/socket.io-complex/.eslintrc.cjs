@@ -15,7 +15,7 @@ module.exports = configure({
         presets.node()
     ],
     extend: {
-        ignorePatterns: ['*.yaml', '*.json', '.eslintrc.cjs', 'dist', '*.md', 'sample'],
+        ignorePatterns: ['*.yaml', '*.json', '.eslintrc.cjs', 'dist', '*.md'],
         rules: {
             'import/extensions': 'warn',
             'import/no-unresolved': 'warn'
