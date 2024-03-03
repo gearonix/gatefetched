@@ -1,4 +1,4 @@
-import { methodNotFoundError } from 'gatefetched'
+import { methodNotFoundError } from '@/errors/create-error'
 import type { ProtocolEvent, ProtocolEventConfig } from '@/shared/types'
 import { isObject, isString } from '@/shared/utils'
 

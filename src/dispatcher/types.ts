@@ -1,8 +1,8 @@
 import type { ParamsDeclaration, SourcedField } from '@farfetched/core'
 import type { Event, EventCallable, Store } from 'effector'
-import type { ProtocolEvent } from 'gatefetched'
 import type { AdapterPublishOptions } from '@/adapters/abstract-adapter'
 import type { StaticOrReactive } from '@/libs/farfetched'
+import type { ProtocolEvent } from '@/shared/types'
 
 export type DispatcherStatus = 'initial' | 'sent'
 

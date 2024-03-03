@@ -41,7 +41,7 @@ export class IoAdapter extends AbstractProtocolAdapter<IoClient, IoOptions> {
     this.client.on(DISCONNECT_EVENT, cb)
   }
 
-  public createConnection(url: string, options: IoOptions) {
+  public createConnection(url: string, options: IoOptions): IoClient {
     return createIoClient(url, options)
   }
 
