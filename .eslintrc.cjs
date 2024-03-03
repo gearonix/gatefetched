@@ -15,7 +15,8 @@ module.exports = configure({
         presets.node()
     ],
     extend: {
-        ignorePatterns: ['*.yaml', '*.json', '.eslintrc.cjs', 'dist', '*.md'],
+        ignorePatterns: ['*.yaml', '*.json', '.eslintrc.cjs', 'dist',
+          '*.md', 'playground', 'vite.config.ts', 'build.config.ts'],
         rules: {
             'import/extensions': 'warn',
             'import/no-unresolved': 'warn'
