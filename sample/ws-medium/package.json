@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "ws-medium",
   "type": "module",
   "sideEffects": false,
   "scripts": {
