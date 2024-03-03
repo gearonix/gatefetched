@@ -44,7 +44,8 @@
     "start": "esno src/create-gateway.ts",
     "test": "vitest",
     "typecheck": "tsc --noEmit",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "bump": "taze -wi"
   },
   "peerDependencies": {
     "@farfetched/core": "^0.11.4",
@@ -69,6 +70,7 @@
     "rimraf": "^5.0.5",
     "simple-git-hooks": "^2.9.0",
     "socket.io-client": "^4.7.4",
+    "taze": "^0.13.3",
     "typescript": "^5.3.3",
     "unbuild": "^2.0.0",
     "vite": "^5.1.4",
