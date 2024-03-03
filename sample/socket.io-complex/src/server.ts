@@ -1,5 +1,4 @@
 import http from 'http'
-import axios from 'axios'
 import cors from 'cors'
 import express from 'express'
 import { Server } from 'socket.io'
@@ -37,12 +36,23 @@ io.on('connection', (socket) => {
   )
 
   socket.on('namespace.get-posts', async () => {
-    const posts = await axios.get<Post[]>(
-      'https://jsonplaceholder.typicode.com/posts'
-    )
+    const posts = [
+      {
+        userId: 1,
+        id: 2,
+        body: 'Post body',
+        title: 'Post'
+      },
+      {
+        userId: 2,
+        id: 2,
+        body: 'Post body',
+        title: 'Post 2'
+      }
+    ] satisfies Post[]
 
     socket.emit('namespace.posts-received', {
-      payload: posts.data.slice(0, 10),
+      payload: posts.slice(0, 10),
       timestamp: new Date().getTime()
     })
   })

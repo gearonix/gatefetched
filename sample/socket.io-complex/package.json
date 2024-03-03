@@ -1,5 +1,5 @@
 {
-  "name": "socket.io-react",
+  "name": "socket.io-complex",
   "scripts": {
     "start": "esno watch src/server.ts & vite"
   },
