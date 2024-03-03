@@ -50,7 +50,7 @@ const sendRequest = gateway.dispatcher({
   name: 'send-request',
   params: declareParams<{ msg: string }>(),
   request: {
-    mapBody: ({ msg }) => msg
+    mapParams: ({ msg }) => msg
   }
 })
 

@@ -20,38 +20,101 @@ export interface BaseListenerConfig<
   DataSource = void,
   ValidateParams = unknown
 > {
+  /**
+   * Name of the event to listen.
+   * @default ANY_WEBSOCKET_EVENT
+   */
   name?: Events
+  /**
+   * @default null
+   */
   initialData?: InitialData
+  /**
+   * If true, starts listening to the channel automatically.
+   * If false, manual call through the 'listen' event is required.
+   * @default true
+   */
   immediate?: StaticOrReactive<boolean>
+  /**
+   * Indicates if the listener is enabled. If false, it stops accepting requests.
+   * @default true
+   */
   enabled?: StaticOrReactive<boolean>
   response?: {
+    /**
+     * Contracts from farfetched.
+     * @reference https://farfetched.pages.dev/tutorial/contracts.html
+     * @default unknownContract
+     */
     contract?: Contract<unknown, Data>
+    /**
+     * Validate function from farfetched.
+     * @reference https://farfetched.pages.dev/tutorial/validators.html
+     * @default validValidator
+     */
     validate?: Validator<Data, ValidateParams, ValidationSource>
+    /**
+     * Serializes incoming data.
+     * @example (result) => result.data
+     * @default identity
+     */
     mapData?: DynamicallySourcedField<Data, TransformedData, DataSource>
   }
+  /**
+   * Adapter options for manual configuration of protocol instance behavior.
+   * @type {AdapterSubscribeOptions}
+   */
   adapter?: AdapterSubscribeOptions
 }
 
 export interface Listener<Data, InitialData = null, Params = unknown> {
+  /**
+   * Indicates if the listener is enabled. If false, it stops accepting requests.
+   * @default true
+   */
   $enabled: Store<boolean>
+  /**
+   * Listener status.
+   * @example 'initial'
+   * @example 'opened'
+   * @default 'initial'
+   */
   $status: Store<ListenerStatus>
   $opened: Store<boolean>
   $idle: Store<boolean>
   $closed: Store<boolean>
+  /**
+   * Last data received from the other side.
+   * @example { hello: 'world' }
+   * @default null
+   */
   $data: Store<Data | InitialData>
+  /**
+   * Starts listening to the channel.
+   * Automatically triggered when 'immediate' is true.
+   */
   listen: EventCallable<void>
+  /**
+   * Stops listening to the channel, changes $status to 'closed'.
+   */
   close: EventCallable<void>
 
-  done: EventCallable<{ result: Data; params?: Params }>
+  /**
+   * Callback triggered upon
+   * receiving a message from the other side.
+   */
+  done: Event<{ result: Data; params?: Params }>
   finished: {
     done: Event<{ result: Data; params?: Params }>
+    /**
+     * вызывается если во время вызова $enabled false
+     */
     skip: Event<void>
   }
   failed: Event<{
     error: FarfetchedError<any>
     params: unknown
   }>
-
   '@@unitShape': () => {
     data: Store<Data | InitialData>
     listen: Event<void>

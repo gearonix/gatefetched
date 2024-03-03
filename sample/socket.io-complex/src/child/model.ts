@@ -1,7 +1,7 @@
 import { zodContract } from '@farfetched/zod'
-import { attachGate } from 'gatefetched'
 import { sample } from 'effector'
 import { createGate } from 'effector-react'
+import { attachGate } from 'gatefetched'
 import { gateway } from '../gateway'
 import { postsReceivedContract as contract } from './contract'
 

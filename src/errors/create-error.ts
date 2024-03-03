@@ -1,11 +1,13 @@
 import type {
   InvalidOperationEventResponseError,
+  MethodNotFoundError,
   UnsupportedAdapterMethodError,
   UnsupportedWebsocketInstanceError,
   WebsocketConnectionFailureError
 } from './types'
 import {
   INVALID_OPERATION_EVENT_RESPONSE,
+  METHOD_NOT_FOUND,
   UNSUPPORTED_ADAPTER_METHOD,
   UNSUPPORTED_WEBSOCKET_INSTANCE,
   WEBSOCKET_CONNECTION_FAILURE
@@ -48,5 +50,13 @@ export function unsupportedAdapterMethodError(
     method,
     errorType: UNSUPPORTED_ADAPTER_METHOD,
     explanation: `The selected adapter does not support the method '${method}'`
+  }
+}
+
+export function methodNotFoundError(method: string): MethodNotFoundError {
+  return {
+    method,
+    errorType: METHOD_NOT_FOUND,
+    explanation: `Selected method '${method}' is not specified in the 'events' configuration`
   }
 }

@@ -15,12 +15,14 @@ export type {
 } from './dispatcher'
 export {
   invalidOperationEventResponseError,
+  methodNotFoundError,
   unsupportedAdapterMethodError,
   unsupportedInstanceError,
   websocketConnectionFailureError
 } from './errors/create-error'
 export type {
   InvalidOperationEventResponseError,
+  MethodNotFoundError,
   UnsupportedAdapterMethodError,
   UnsupportedWebsocketInstanceError,
   WebsocketConnectionFailureError

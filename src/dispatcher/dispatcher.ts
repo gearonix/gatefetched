@@ -71,12 +71,12 @@ export function createDispatcher(gatewayConfig: PreparedGatewayParams) {
     const publishToRemoteSourceFx = createEffect(
       attach({
         source: {
-          mapBody: normalizeSourced({
-            field: options.request?.mapBody ?? identity
+          mapParams: normalizeSourced({
+            field: options.request?.mapParams ?? identity
           })
         },
-        mapParams: (params: unknown, { mapBody }) => ({
-          body: mapBody(params)
+        mapParams: (params: unknown, { mapParams }) => ({
+          body: mapParams(params)
         }),
         effect: publishFx
       })

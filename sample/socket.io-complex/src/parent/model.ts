@@ -31,7 +31,7 @@ export const sendMessage = parent.dispatcher({
     withAck: true
   },
   request: {
-    mapBody: (message) => ({ message })
+    mapParams: (message) => ({ message })
   }
 })
 

@@ -27,3 +27,10 @@ export interface UnsupportedAdapterMethodError
   extends FarfetchedError<typeof UNSUPPORTED_ADAPTER_METHOD> {
   method: string
 }
+
+export const METHOD_NOT_FOUND = 'METHOD_NOT_FOUND'
+
+export interface MethodNotFoundError
+  extends FarfetchedError<typeof METHOD_NOT_FOUND> {
+  method: string
+}

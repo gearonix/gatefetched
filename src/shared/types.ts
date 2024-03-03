@@ -18,7 +18,10 @@ export type ProtocolEvent = string
 
 export type ProtocolInstance = SocketIoInstance | WebSocket | EventSource
 
-export type OneSidedProtocols = Extract<ProtocolInstance, EventSource>
+export type BothSidedProtocols = Extract<
+  ProtocolInstance,
+  SocketIoInstance | WebSocket
+>
 
 export type InterceptType = 'incoming' | 'outgoing'
 
